@@ -4,6 +4,8 @@ import org.algobench.algorithms.foursum.FourSumContext;
 import org.algobench.algorithms.foursum.FourSumCubic;
 import org.algobench.algorithms.foursum.FourSumHashmap;
 import org.algobench.algorithms.foursum.FourSumQuartic;
+import org.algobench.algorithms.hyperloglog.HyperLogLog;
+import org.algobench.algorithms.hyperloglog.HyperLogLogContext;
 import org.algobench.algorithms.orthogonalvector.OrthogonalVector;
 import org.algobench.algorithms.orthogonalvector.OrthogonalVectorContext;
 import org.algobench.algorithms.orthogonalvector.OrthogonalVectorNaive;
@@ -22,6 +24,7 @@ public class AlgorithmContextFactory {
 			case FOURSUM_HASHMAP -> new FourSumContext(new FourSumHashmap());
 			case FOURSUM_CUBIC -> new FourSumContext(new FourSumCubic());
 			case VECTOR_NAIVE -> new OrthogonalVectorContext(new OrthogonalVectorNaive());
+			case HYPERLOGLOG -> new HyperLogLogContext(new HyperLogLog());
 			case null ->
 					throw new IllegalArgumentException("No algorithm found");
 			// Add cases for other algorithm contexts

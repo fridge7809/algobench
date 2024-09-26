@@ -6,9 +6,9 @@ import org.algobench.app.factory.AlgorithmVariantRegister;
 
 import java.io.InputStream;
 import java.util.Optional;
+import java.util.stream.Stream;
 
-import static org.algobench.app.InputType.ONE_DIMENSION;
-import static org.algobench.app.InputType.TWO_DIMENSION;
+import static org.algobench.app.InputType.*;
 
 public class BootstrapLogic {
 
@@ -25,8 +25,6 @@ public class BootstrapLogic {
 		InputType inputType = determineInputDimensionType(algorithmRegistry);
 		AlgorithmContext algorithmContext = AlgorithmContextFactory.getContext(algorithmRegistry.get());
 
-		// todo refac
-
 		String output = null;
 		if (inputType.equals(ONE_DIMENSION)) {
 			int[] input = InputParser.parse(in);
@@ -36,6 +34,9 @@ public class BootstrapLogic {
 			int[][] inputTwo = InputParser.parseTwoDimensional(in);
 			int[][] resultTwo = algorithmContext.calculateTwoDimensional(inputTwo);
 			output = formatOutputArrayAsString(resultTwo);
+		} else if (inputType.equals(STREAM)) {
+			Stream<Integer> input = InputParser.parseStream(in);
+			output = algorithmContext.calculateStream(input);
 		} else {
 			throw new IllegalArgumentException("Unknown input type");
 		}
@@ -44,10 +45,20 @@ public class BootstrapLogic {
 	}
 
 	static InputType determineInputDimensionType(Optional<AlgorithmVariantRegister> register) {
-		return register
-				.filter(register1 -> register1.equals(AlgorithmVariantRegister.VECTOR_NAIVE))
-				.map(_ -> InputType.TWO_DIMENSION)
-				.orElse(ONE_DIMENSION);
+		return register.map(algo -> {
+					switch (algo) {
+						case HYPERLOGLOG -> {
+							return STREAM;
+						}
+						case VECTOR_NAIVE -> {
+							return TWO_DIMENSION;
+						}
+						default -> {
+							return ONE_DIMENSION;
+						}
+
+					}
+				}).orElse(ONE_DIMENSION);
 	}
 
 	static String formatOutputArrayAsString(int[] output) {

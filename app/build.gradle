@@ -72,6 +72,6 @@ jmh {
     resultFormat = 'CSV'
     threads = 8
     fork = 1
-    includes = ['^.*foursum.*$']
+    includes = ['^.*Exponent.*$']
     verbosity = 'EXTRA'
 }
