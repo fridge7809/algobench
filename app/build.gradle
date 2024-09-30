@@ -46,8 +46,7 @@ java {
 }
 
 application {
-    // Define the main class for the application.
-    mainClass = 'org.algobench.app.Main'
+    mainClass = project.hasProperty('mainClass') ? project.mainClass : 'org.algobench.app.Main'
 }
 
 jar {
