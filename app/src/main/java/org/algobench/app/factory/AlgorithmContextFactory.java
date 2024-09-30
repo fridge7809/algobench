@@ -24,7 +24,7 @@ public class AlgorithmContextFactory {
 			case FOURSUM_HASHMAP -> new FourSumContext(new FourSumHashmap());
 			case FOURSUM_CUBIC -> new FourSumContext(new FourSumCubic());
 			case VECTOR_NAIVE -> new OrthogonalVectorContext(new OrthogonalVectorNaive());
-			case HYPERLOGLOG -> new HyperLogLogContext(new HyperLogLog());
+			case HYPERLOGLOG -> new HyperLogLogContext(new HyperLogLog(10));
 			case null ->
 					throw new IllegalArgumentException("No algorithm found");
 			// Add cases for other algorithm contexts

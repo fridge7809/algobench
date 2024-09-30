@@ -48,6 +48,7 @@ public class InputParser {
 		Pattern pattern = Pattern.compile("\n");
 		try (Scanner scanner = new Scanner(inputStream)) {
 			return Arrays.stream(scanner.nextLine().trim().split(pattern.pattern()))
+					.filter(s -> !s.isEmpty())
 					.map(Integer::parseInt);
 		} catch (NoSuchElementException e) {
 			throw new NoSuchElementException("Unexpected input format");

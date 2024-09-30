@@ -1,8 +1,13 @@
 package org.algobench.algorithms.hyperloglog;
 
 import net.jqwik.api.*;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
+import net.jqwik.api.constraints.IntRange;
+import org.assertj.core.internal.Integers;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.*;
 
 
 class HyperLogLogTest {
@@ -18,15 +23,9 @@ class HyperLogLogTest {
 	};
 
 
-	@BeforeAll
-	static void setUp() {
-		hyperLogLog = new HyperLogLog();
-	}
-
-
 	@Property
 	void testHexValues() {
-		Assertions.assertThat(matrix).hasSize(32);
+		assertThat(matrix).hasSize(32);
 	}
 
 	@Provide
@@ -34,9 +33,64 @@ class HyperLogLogTest {
 		return Arbitraries.integers().between(1, Integer.MAX_VALUE);
 	}
 
+	@Provide
+	Arbitrary<int[]> hashIntegersProvider() {
+		return Arbitraries.integers()
+				.between(Integer.MIN_VALUE, Integer.MAX_VALUE)
+				.array(int[].class)
+				.ofSize((1 << 16))
+				.uniqueElements();
+	}
+
+	@Provide
+	Arbitrary<int[]> millionIntegersProvider() {
+		return Arbitraries.integers().between(Integer.MIN_VALUE, Integer.MAX_VALUE).array(int[].class).ofMinSize(1_000_000).uniqueElements().withSizeDistribution(RandomDistribution.uniform());
+	}
+
+
+
+
+	@Example
+	void testP_shouldNotOverflow() {
+		assertThat(HyperLogLog.p(0)).isZero();
+	}
+
 	@Property
-	void testLogBaseTwo(@ForAll("integerProvider") Integer n) {
-		Assertions.assertThat(HyperLogLog.ln(n)).isEqualTo((int)(Math.log(n) / Math.log(2)));
+	void testP_shouldBeWithinIntegerRange(@ForAll("integerProvider") int n) {
+		assertThat(HyperLogLog.p(n)).isBetween(0, 32);
+	}
+
+	@Property
+	void testHashCode_shouldBeAnInteger(@ForAll("integerProvider") int n) {
+		assertThat(HyperLogLog.hashCode(n)).isBetween(Integer.MIN_VALUE, Integer.MAX_VALUE);
+	}
+
+	@Property(tries = 1)
+	void testHashCode_hasReasonableAmountOfCollisions(@ForAll("hashIntegersProvider") int[] nums) {
+		int hashSize = 10;
+		// assume hash function is truly random
+		int n = nums.length;
+		int k = (1 << hashSize);
+		int[] histogram = new int[k];
+ 		TreeMap<Integer, Integer> map = new TreeMap<>();
+		 for (int num : nums) {
+			 int hash = HyperLogLog.hashCode(num);
+			 map.compute(hash, (key, val) -> val == null ? 1 : val + 1);
+		 }
+		 for (int distinct : map.keySet().stream().distinct().collect(Collectors.toUnmodifiableList())) {
+			 histogram[map.get(distinct)] = distinct;
+		 }
+		 int test = 0;
+
+	}
+
+	@Property(tries = 5)
+	void hyperLogLog_relativeErrorIsAcceptable_forLargerEstimate(@ForAll("millionIntegersProvider") int[] n) {
+		hyperLogLog = new HyperLogLog(10);
+		for (int i = 0; i < n.length; i++) {
+			hyperLogLog.add(n[i]);
+		}
+		assertThat(hyperLogLog.relativeError(1_000_000)).isBetween(0.0, 2.0);
 	}
 
 

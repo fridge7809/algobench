@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 public class HyperLogLogBenchmarks {
 
-	//@Benchmark
+	@Benchmark
 	@BenchmarkMode(Mode.Throughput)
 	@OutputTimeUnit(TimeUnit.MILLISECONDS)
 	@Fork(value = 1, warmups = 1)
@@ -22,11 +22,6 @@ public class HyperLogLogBenchmarks {
 	@Benchmark
 	public void benchmarkExponentMath(Blackhole bh, ExecutionState state) {
 		bh.consume(Math.pow(2, state.n));
-	}
-
-	@Benchmark
-	public void benchmarkExponentOwn(Blackhole bh, ExecutionState state) {
-		bh.consume(HyperLogLog.ln(state.n));
 	}
 
 	@State(Scope.Benchmark)
