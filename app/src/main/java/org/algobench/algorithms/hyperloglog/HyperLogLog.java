@@ -1,7 +1,5 @@
 package org.algobench.algorithms.hyperloglog;
 
-import java.util.Random;
-import java.util.Set;
 import java.util.stream.Stream;
 
 public class HyperLogLog implements HyperLogLogAlgorithm {
@@ -17,7 +15,13 @@ public class HyperLogLog implements HyperLogLogAlgorithm {
 	}
 
 	public HyperLogLog() {
-		setup(10);
+		setup(10); // default m = 2^10 = 1024
+	}
+
+	public void clearRegisters() {
+		for (int i = 0; i < registers.length; i++) {
+			registers[i] = 0;
+		}
 	}
 
 	private void setup(int p) {
@@ -28,12 +32,12 @@ public class HyperLogLog implements HyperLogLogAlgorithm {
 		this.registers = new byte[m];
 	}
 
-	// for testing
+	// for testing and sanity checking and plotting
 	protected double relativeError(double actualCardinality) {
 		if (estimate() == 0.0) {
 			return 0.0;
 		}
-		return Math.abs(estimate() - actualCardinality) / actualCardinality * 100;
+		return (estimate() - actualCardinality) / actualCardinality * 100;
 	}
 
 	public double estimate() {
@@ -68,7 +72,8 @@ public class HyperLogLog implements HyperLogLogAlgorithm {
 		return h;
 	}
 
-	// hashcode to use to map 32-bit integer into m^p-bit (default 1024)
+
+	// hashcode to use to map 32-bit integer into m^p-bit (default m = 1024)
 	private int f(int x) {
 		return ((x * 0xbc164501) & 0x7fffffff) >> (Integer.SIZE - p - 1);
 	}
@@ -95,8 +100,9 @@ public class HyperLogLog implements HyperLogLogAlgorithm {
 	}
 
 	public static void main(String[] args) {
-		HyperLogLog hll = new HyperLogLog(10);
-		int actualCardinality = 10_000;
+		HyperLogLog hll = new HyperLogLog(16);
+		int n;
+		int actualCardinality = 1_000_000;
 
 		for (int i = actualCardinality; i < actualCardinality * 2; i++) {
 			hll.add(i);

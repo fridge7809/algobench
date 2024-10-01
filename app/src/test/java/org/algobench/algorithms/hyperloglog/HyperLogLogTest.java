@@ -33,6 +33,11 @@ class HyperLogLogTest {
 	}
 
 	@Provide
+	Arbitrary<Integer> allIntegerProvider() {
+		return Arbitraries.integers().between(Integer.MIN_VALUE, Integer.MAX_VALUE);
+	}
+
+	@Provide
 	Arbitrary<int[]> hashIntegersProvider() {
 		return Arbitraries.integers()
 				.between(Integer.MIN_VALUE, Integer.MAX_VALUE)
@@ -65,6 +70,13 @@ class HyperLogLogTest {
 	@Property
 	void testHashCode_shouldBeAnInteger(@ForAll("integerProvider") int n) {
 		assertThat(HyperLogLog.hashCode(n)).isBetween(Integer.MIN_VALUE, Integer.MAX_VALUE);
+	}
+
+	@Property
+	void testHashCode_isDeterministicAndPure(@ForAll("allIntegerProvider") int x) {
+		int hashX = HyperLogLog.hashCode(x);
+		int hashY = HyperLogLog.hashCode(x);
+		assertThat(hashX).isEqualTo(hashY);
 	}
 
 	@Property(tries = 1)
