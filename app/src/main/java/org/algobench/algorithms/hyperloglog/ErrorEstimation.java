@@ -5,17 +5,17 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-public class InputGenerator {
+public class ErrorEstimation {
 
 	public static void main(String[] args) {
 		// ./gradlew jar
 		// java -cp app/build/libs/app.jar org.algobench.algorithms.hyperloglog.InputGenerator N 10 17 500
 
 		int n = 5;
-		int precisionStart = 10;
-		int precisionEnd = 17;
+		int precisionStart = 10; //inclusive
+		int precisionEnd = 17; // exclusive
 		int pDiff = precisionEnd - precisionStart;
-		int trials = 2;
+		int trials = 500;
 		HyperLogLog[] logs = new HyperLogLog[pDiff];
 		for (int i = 0; i < pDiff; i++) {
 			logs[i] = new HyperLogLog(i + precisionStart);
@@ -32,7 +32,6 @@ public class InputGenerator {
 				int precision = p + precisionStart;
 				inputs.add(new HashSet<>(n));
 				for (int i = 0; i < n; i++) {
-					int test;
 					int u = (int) Math.pow(10, i + 2);
 					for (int j = 0; j < u; j++) {
 						int next = random.nextInt();

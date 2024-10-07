@@ -1,5 +1,7 @@
 package org.algobench.algorithms.hyperloglog;
 
+import org.algobench.algorithms.hashing.MatrixVectorHash;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -19,7 +21,7 @@ public class ChiSquared {
 		int bits = 32;
 		int[] arr = new int[bits + 1];
 		for (int i = 1; i < nums.length; i++) {
-			int leadingZeroes = HyperLogLog.p(HyperLogLog.hashCode(i));
+			int leadingZeroes = HyperLogLog.p(MatrixVectorHash.hash(i));
 			arr[leadingZeroes]++;
 		}
 

@@ -1,6 +1,6 @@
 package org.algobench.benchmarking;
 
-import org.algobench.algorithms.hyperloglog.HyperLogLog;
+import org.algobench.algorithms.hashing.MatrixVectorHash;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
@@ -15,7 +15,7 @@ public class HyperLogLogBenchmarks {
 	@Fork(value = 1, warmups = 1)
 	public void benchmarkHashCode(Blackhole bh, ExecutionState state) {
 		for (int i = 0; i < state.n; i++) {
-			bh.consume(HyperLogLog.hashCode(state.nums[i]));
+			bh.consume(MatrixVectorHash.hash(state.nums[i]));
 		}
 	}
 

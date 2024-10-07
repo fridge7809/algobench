@@ -1,5 +1,7 @@
 package org.algobench.algorithms.hyperloglog;
 
+import org.algobench.algorithms.hashing.MatrixVectorHash;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -18,7 +20,7 @@ public class HashDistribution {
 		int bits = 1 << p;
 		int[] arr = new int[bits];
 		for (int i = 1; i < nums.length; i++) {
-			int hash = ((HyperLogLog.hashCode(i << 16) * 0xbc164501) & 0x7fffffff) >> (Integer.SIZE - p - 1);
+			int hash = ((MatrixVectorHash.hash(i << 16) * 0xbc164501) & 0x7fffffff) >> (Integer.SIZE - p - 1);
 			arr[hash]++;
 		}
 

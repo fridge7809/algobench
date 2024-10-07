@@ -1,27 +1,25 @@
 package org.algobench.algorithms.hyperloglog;
 
+import org.algobench.algorithms.hashing.MatrixVectorHash;
+import org.algobench.algorithms.hashing.Murmurhash3;
+
+import java.math.BigInteger;
+import java.util.Scanner;
 import java.util.stream.Stream;
 
 public class HyperLogLog implements HyperLogLogAlgorithm {
 
-	private static final int[] matrix = new int[]{0x21ae4036, 0x32435171, 0xac3338cf, 0xea97b40c, 0x0e504b22, 0x9ff9a4ef, 0x111d014d, 0x934f3787, 0x6cd079bf, 0x69db5c31, 0xdf3c28ed, 0x40daf2ad, 0x82a5891c, 0x4659c7b0, 0x73dc0ca8, 0xdad3aca2, 0x00c74c7e, 0x9a2521e2, 0xf38eb6aa, 0x64711ab6, 0x5823150a, 0xd13a3a9a, 0x30a5aa04, 0x0fb9a1da, 0xef785119, 0xc9f0b067, 0x1e7dde42, 0xdda4a7b2, 0x1a1c2640, 0x297c0633, 0x744edb48, 0x19adce93};
 	private byte[] registers;
 	private double AM;
 	private int m;
 	private int p;
 
-	public HyperLogLog(int p) {
-		setup(p);
+	public HyperLogLog(int precision) {
+		setup(precision);
 	}
 
 	public HyperLogLog() {
 		setup(10); // default m = 2^10 = 1024
-	}
-
-	public void clearRegisters() {
-		for (int i = 0; i < registers.length; i++) {
-			registers[i] = 0;
-		}
 	}
 
 	private void setup(int p) {
@@ -57,37 +55,27 @@ public class HyperLogLog implements HyperLogLogAlgorithm {
 		}
 		// large range correction
 		else if (estimate > (1.0 / 30.0) * (1L << 32)) {
+			System.out.println("large");
 			estimate = -(1L << 32) * Math.log(1 - (estimate / (1L << 32)));
 		}
 		return estimate;
 	}
 
-	public static int hashCode(int x) {
-		int h = 0;
-		for (int j = 0; j < matrix.length; j++) {
-			int t = matrix[j] & x;
-			int parity = Integer.bitCount(t) % 2;
-			h |= (parity << j);
-		}
-		return h;
-	}
-
-
 	// hashcode to use to map 32-bit integer into m^p-bit (default m = 1024)
 	private int f(int x) {
-		return ((x * 0xbc164501) & 0x7fffffff) >> (Integer.SIZE - p - 1);
+		return ((x * 0xbc164501) & 0x7fffffff) >> ((Integer.SIZE-1) - p);
 	}
 
-	static int p(int x) {
+	static byte p(int x) {
 		if (x == 0) { // overflow protection
 			return 0;
 		}
-		return Integer.numberOfLeadingZeros(x) + 1;
+		return (byte) (Integer.numberOfLeadingZeros(x) + 1);
 	}
 
 	// add n to register
 	public void add(int n) {
-		int x = hashCode(n);
+		int x = MatrixVectorHash.hash(n);
 		int j = f(x);
 		registers[j] = (byte) Math.max(registers[j], p(x));
 	}
@@ -99,10 +87,15 @@ public class HyperLogLog implements HyperLogLogAlgorithm {
 		return String.valueOf(estimate);
 	}
 
+	public void clearRegisters() {
+		for (int i = 0; i < registers.length; i++) {
+			registers[i] = 0;
+		}
+	}
+
 	public static void main(String[] args) {
 		HyperLogLog hll = new HyperLogLog(16);
-		int n;
-		int actualCardinality = 1_000_000;
+		int actualCardinality = 4_000_000;
 
 		for (int i = actualCardinality; i < actualCardinality * 2; i++) {
 			hll.add(i);
@@ -113,4 +106,6 @@ public class HyperLogLog implements HyperLogLogAlgorithm {
 		System.out.println("Actual cardinality: " + actualCardinality);
 		System.out.printf("Relative error: %.2f%%\n", hll.relativeError(actualCardinality));
 	}
+
+
 }
