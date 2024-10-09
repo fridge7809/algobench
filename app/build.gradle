@@ -32,8 +32,7 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.26.3'
 
     // https://mvnrepository.com/artifact/edu.princeton.cs/algs4
-    implementation 'edu.princeton.cs:algs4:1.0.4'
-
+    implementation files('deps/algs4.jar')
 
 
     jmh 'org.openjdk.jmh:jmh-core:1.37'
