@@ -13,8 +13,16 @@ import java.util.stream.LongStream;
 public class HashProbability {
 
 	public static void main(String[] args) {
-		int RANGE = 1_000_000_000;
-		int bits = 32;
+		// ./gradlew jar
+		// java -cp app/build/libs/app.jar org.algobench.algorithms.hyperloglog.HashProbability RANGE BITS
+		// python3 postprocess_hashprobability.py
+
+		if (args.length != 2) {
+			System.err.println("Usage: HashProbability <RANGE> <BITS>");
+		}
+
+		int RANGE = args.length == 2 ? Integer.parseInt(args[0]) : 1_000_000;
+		int bits = args.length == 2 ? Integer.parseInt(args[1]) : 32;
 		int[] arr = new int[bits + 1];
 		IntStream.range(0, RANGE).forEach(i -> {
 			byte leading = HyperLogLog.p(MatrixVectorHash.hash(i));

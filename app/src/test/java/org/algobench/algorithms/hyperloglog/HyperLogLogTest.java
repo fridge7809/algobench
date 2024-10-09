@@ -2,6 +2,7 @@ package org.algobench.algorithms.hyperloglog;
 
 import net.jqwik.api.*;
 import net.jqwik.api.constraints.IntRange;
+import org.algobench.algorithms.hashing.MatrixVectorHash;
 import org.assertj.core.internal.Integers;
 
 import java.util.*;
@@ -64,18 +65,18 @@ class HyperLogLogTest {
 
 	@Property
 	void testP_shouldBeWithinIntegerRange(@ForAll("integerProvider") int n) {
-		assertThat(HyperLogLog.p(n)).isBetween(0, 32);
+		assertThat(HyperLogLog.p(n)).isBetween((byte) 0, (byte) 32);
 	}
 
 	@Property
 	void testHashCode_shouldBeAnInteger(@ForAll("integerProvider") int n) {
-		assertThat(HyperLogLog.hashCode(n)).isBetween(Integer.MIN_VALUE, Integer.MAX_VALUE);
+		assertThat(MatrixVectorHash.hash(n)).isBetween(Integer.MIN_VALUE, Integer.MAX_VALUE);
 	}
 
 	@Property
 	void testHashCode_isDeterministicAndPure(@ForAll("allIntegerProvider") int x) {
-		int hashX = HyperLogLog.hashCode(x);
-		int hashY = HyperLogLog.hashCode(x);
+		int hashX = MatrixVectorHash.hash(x);
+		int hashY = MatrixVectorHash.hash(x);
 		assertThat(hashX).isEqualTo(hashY);
 	}
 
@@ -88,7 +89,7 @@ class HyperLogLogTest {
 		int[] histogram = new int[k];
  		TreeMap<Integer, Integer> map = new TreeMap<>();
 		 for (int num : nums) {
-			 int hash = HyperLogLog.hashCode(num);
+			 int hash = MatrixVectorHash.hash(num);
 			 map.compute(hash, (key, val) -> val == null ? 1 : val + 1);
 		 }
 		 for (int distinct : map.keySet().stream().distinct().collect(Collectors.toUnmodifiableList())) {

@@ -94,12 +94,13 @@ public class HyperLogLog implements HyperLogLogAlgorithm {
 	}
 
 	public static void main(String[] args) {
-		HyperLogLog hll = new HyperLogLog(16);
-		int actualCardinality = 4_000_000;
+		HyperLogLog hll = new HyperLogLog(10);
+		int actualCardinality = 1_000_000_000;
 
 		for (int i = actualCardinality; i < actualCardinality * 2; i++) {
 			hll.add(i);
 		}
+		int n;
 
 		double estimatedCardinality = hll.estimate();
 		System.out.println("Estimated cardinality: " + (long) estimatedCardinality);

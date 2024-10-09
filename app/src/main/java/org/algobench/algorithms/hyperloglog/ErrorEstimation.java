@@ -10,6 +10,7 @@ public class ErrorEstimation {
 	public static void main(String[] args) {
 		// ./gradlew jar
 		// java -cp app/build/libs/app.jar org.algobench.algorithms.hyperloglog.InputGenerator N 10 17 500
+		// python3 postprocess_scatter.py
 
 		int n = 5;
 		int precisionStart = 10; //inclusive
