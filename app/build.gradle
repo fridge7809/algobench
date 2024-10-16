@@ -11,11 +11,16 @@ plugins {
     id 'jacoco'
     id 'org.graalvm.buildtools.native' version '0.10.2'
     id "me.champeau.jmh" version "0.7.2"
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
+}
+
+shadowJar {
+    mergeServiceFiles()
 }
 
 dependencies {
