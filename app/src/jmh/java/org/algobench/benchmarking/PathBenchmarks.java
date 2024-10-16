@@ -1,18 +1,13 @@
 package org.algobench.benchmarking;
 
 import edu.princeton.cs.algs4.EdgeWeightedGraph;
-import org.algobench.algorithms.hashing.MatrixVectorHash;
+import org.algobench.algorithms.shortestpath.ParseGraph;
 import org.algobench.algorithms.shortestpath.BidirectionalDijkstra;
-import org.algobench.algorithms.shortestpath.DijkstraShortestPath;
 import org.graalvm.collections.Pair;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Objects;
+import java.io.*;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -26,9 +21,10 @@ public class PathBenchmarks {
 		for (int i = 0; i < state.pairs.length; i++) {
 			int s = (int) state.pairs[i].getLeft();
 			int t = (int) state.pairs[i].getLeft();
-			bh.consume(new DijkstraShortestPath(state.graph, s).distTo(t));
+			bh.consume(new BidirectionalDijkstra(state.graph, s, t).distTo(t));
 		}
 	}
+
 
 	@State(Scope.Benchmark)
 	public static class ExecutionState {
@@ -41,13 +37,18 @@ public class PathBenchmarks {
 		@Setup(Level.Trial)
 		public void setup() throws IOException {
 			String resourceName = "denmark.graph";
-			ClassLoader classLoader = BidirectionalDijkstra.class.getClassLoader();
-			File file = new File(Objects.requireNonNull(classLoader.getResource(resourceName)).getFile());
-			graph = BidirectionalDijkstra.parseInput(new FileInputStream(file));
+			ClassLoader classLoader = ParseGraph.class.getClassLoader();
+			try (InputStream inputStream = classLoader.getResourceAsStream(resourceName)) {
+				if (inputStream == null) {
+					throw new FileNotFoundException("Resource " + resourceName + " not found");
+				}
+				graph = ParseGraph.parseInput(inputStream);
+			}
 			pairs = new Pair[n];
 			for (int i = 0; i < n; i++) {
 				pairs[i] = Pair.create(random.nextInt(0, graph.V()), random.nextInt(0, graph.V()));
 			}
 		}
+
 	}
 }

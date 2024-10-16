@@ -79,6 +79,6 @@ jmh {
     resultFormat = 'CSV'
     threads = 8
     fork = 1
-    includes = ['^.*Exponent.*$']
+    includes = ['^.*benchmarkDijkstra.*$']
     verbosity = 'EXTRA'
 }

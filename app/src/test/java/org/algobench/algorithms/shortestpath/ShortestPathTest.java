@@ -16,6 +16,7 @@ public class ShortestPathTest {
 	static EdgeWeightedGraph denmark;
 	static EdgeWeightedGraph degree;
 	static EdgeWeightedGraph shortestPath;
+	static EdgeWeightedGraph test;
 	static int n;
 	static int m;
 
@@ -23,23 +24,28 @@ public class ShortestPathTest {
 	@BeforeContainer
 	public static void init() throws IOException {
 		String resourceName = "denmark.graph";
-		ClassLoader classLoader = BidirectionalDijkstra.class.getClassLoader();
+		ClassLoader classLoader = ParseGraph.class.getClassLoader();
 		file = new File(Objects.requireNonNull(classLoader.getResource(resourceName)).getFile());
-		denmark = BidirectionalDijkstra.parseInput(new FileInputStream(file));
+		//denmark = ParseGraph.parseInput(new FileInputStream(file));
 
 		Scanner scanner = new Scanner(file);
 		n = scanner.nextInt();
 		m = scanner.nextInt();
 
 		resourceName = "degree.graph";
-		classLoader = BidirectionalDijkstra.class.getClassLoader();
+		classLoader = ParseGraph.class.getClassLoader();
 		file = new File(Objects.requireNonNull(classLoader.getResource(resourceName)).getFile());
-		degree = BidirectionalDijkstra.parseInput(new FileInputStream(file));
+		// degree = ParseGraph.parseInput(new FileInputStream(file));
 
 		resourceName = "dist.graph";
-		classLoader = BidirectionalDijkstra.class.getClassLoader();
+		classLoader = ParseGraph.class.getClassLoader();
 		file = new File(Objects.requireNonNull(classLoader.getResource(resourceName)).getFile());
-		shortestPath = BidirectionalDijkstra.parseInput(new FileInputStream(file));
+		// shortestPath = ParseGraph.parseInput(new FileInputStream(file));
+
+		resourceName = "sp.graph";
+		classLoader = ParseGraph.class.getClassLoader();
+		file = new File(Objects.requireNonNull(classLoader.getResource(resourceName)).getFile());
+		test = ParseGraph.parseInput(new FileInputStream(file));
 
 	}
 
@@ -60,11 +66,24 @@ public class ShortestPathTest {
 
 	@Example
 	void graphHasPathTo() {
-		DijkstraShortestPath sp1 = new DijkstraShortestPath(degree, 1);
-		DijkstraShortestPath sp2 = new DijkstraShortestPath(degree, 2);
-		DijkstraShortestPath sp3 = new DijkstraShortestPath(degree, 3);
+		BidirectionalDijkstra sp1 = new BidirectionalDijkstra(degree, 1);
+		BidirectionalDijkstra sp2 = new BidirectionalDijkstra(degree, 2);
+		BidirectionalDijkstra sp3 = new BidirectionalDijkstra(degree, 3);
 
 		Assertions.assertThat(sp1.hasPathTo(1)).isTrue();
+	}
+
+	@Example
+	void shouldFindSP() {
+		BidirectionalDijkstra sp = new BidirectionalDijkstra(test, 0);
+		BidirectionalDijkstra sp1 = new BidirectionalDijkstra(test, 0, 5);
+		BidirectionalDijkstra sp2 = new BidirectionalDijkstra(test, 3, 4);
+
+		Assertions.assertThat(sp1.hasPathTo(5)).isTrue();
+		Assertions.assertThat(sp1.distTo(5)).isEqualTo((double) 6);
+
+		Assertions.assertThat(sp2.hasPathTo(4)).isTrue();
+		Assertions.assertThat(sp2.distTo(4)).isEqualTo((double) 8);
 	}
 
 	@Example
