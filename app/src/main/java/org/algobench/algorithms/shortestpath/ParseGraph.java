@@ -32,12 +32,17 @@ public class ParseGraph {
 
 		for (int i = 0; i < m; i++) {
 			tokenizer = new StringTokenizer(reader.readLine());
-			long from = Long.parseLong(tokenizer.nextToken());
-			long to = Long.parseLong(tokenizer.nextToken());
-			int fromIdx = (Murmurhash3.hash32(BigInteger.valueOf(from).toByteArray()) & 0x7FFFFFFF) % n-1;
-			int toIdx = (Murmurhash3.hash32(BigInteger.valueOf(to).toByteArray()) & 0x7FFFFFFF) & n-1;
+			// long from = Long.parseLong(tokenizer.nextToken());
+			// long to = Long.parseLong(tokenizer.nextToken());
+			int fromInt = Integer.parseInt(tokenizer.nextToken());
+			int toInt = Integer.parseInt(tokenizer.nextToken());
+
+			//System.out.println(fromInt + " to " + toInt);
+			//int fromIdx = (Murmurhash3.hash32(BigInteger.valueOf(from).toByteArray()) & 0x7FFFFFFF) % n-1;
+			//int toIdx = (Murmurhash3.hash32(BigInteger.valueOf(to).toByteArray()) & 0x7FFFFFFF) & n-1;
+			//System.out.println(fromIdx + " to " + toIdx);
 			double weight = Double.parseDouble(tokenizer.nextToken());
-			graph.addEdge(new Edge(fromIdx, toIdx, weight));
+			graph.addEdge(new Edge(fromInt, toInt, weight));
 		}
 
 		return graph;
@@ -45,8 +50,9 @@ public class ParseGraph {
 
 	public static void main(String[] args) {
 		try {
-			EdgeWeightedGraph graph = ParseGraph.parseInput(new FileInputStream("app/src/test/resources/denmark.graph"));
+			EdgeWeightedGraph graph = ParseGraph.parseInput(new FileInputStream("app/src/test/resources/testing.graph"));
 			DijkstraShortestPath sp = new DijkstraShortestPath(graph, 0);
+			//BidirectionalDijkstra bsp = new BidirectionalDijkstra(graph, 0, 10);
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
