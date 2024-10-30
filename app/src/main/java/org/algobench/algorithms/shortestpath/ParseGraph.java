@@ -8,6 +8,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
@@ -26,7 +27,7 @@ public class ParseGraph {
 		EdgeWeightedGraph graph = new EdgeWeightedGraph(n);
 
 		// used for keeping trakc of hashes, to not have multiple with same hash
-		Set<Integer> usedHashes = new HashSet<>();
+		Map<Long, Integer> hashes = new HashMap<>();
 
 		for (int i = 0; i < n; i++) {
 			tokenizer = new StringTokenizer(reader.readLine());
