@@ -12,8 +12,8 @@ import org.junit.jupiter.api.Test;
 public class BidirectionalDijkstraTest {
 
     private static EdgeWeightedGraph graph;
-    private static BidirectionalDijkstra bidijkst;
-    private static DijkstraShortestPath dijkst;
+    private static DijkstraEarlyStoppingBidirectional bidijkst;
+    private static DijkstraEarlyStopping dijkst;
 
     @BeforeEach
     private void setup() {
@@ -24,8 +24,8 @@ public class BidirectionalDijkstraTest {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        bidijkst = new BidirectionalDijkstra(graph, 0, 10);
-        dijkst = new DijkstraShortestPath(graph, 0, 10);
+        bidijkst = new DijkstraEarlyStoppingBidirectional(graph, 0, 10);
+        dijkst = new DijkstraEarlyStopping(graph, 0, 10);
     }
 
 

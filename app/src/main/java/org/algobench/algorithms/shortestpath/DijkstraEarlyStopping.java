@@ -4,16 +4,16 @@ import edu.princeton.cs.algs4.*;
 
 import java.util.Iterator;
 
-public class DijkstraShortestPath {
+public class DijkstraEarlyStopping {
 	private double[] distTo;
 	private Edge[] edgeTo;
 	private IndexMinPQ<Double> pq;
-	private static int countRelaxed;
+	private static long countRelaxed;
 
-	public int getRelaxed() {
+	public long getRelaxed() {
 		return countRelaxed;
 	}
-	public DijkstraShortestPath(EdgeWeightedGraph graph, int source, int target) {
+	public DijkstraEarlyStopping(EdgeWeightedGraph graph, int source, int target) {
 		Iterator edgeIterator = graph.edges().iterator();
 
 		while (edgeIterator.hasNext()) {

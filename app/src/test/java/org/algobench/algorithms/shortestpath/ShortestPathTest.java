@@ -8,8 +8,6 @@ import org.assertj.core.api.Assertions;
 
 import java.io.*;
 import java.util.HashMap;
-import java.util.Objects;
-import java.util.Scanner;
 import java.util.StringTokenizer;
 
 public class ShortestPathTest {
@@ -80,8 +78,8 @@ public class ShortestPathTest {
 	@Example
 	void shouldFindSP() {
 		// BidirectionalDijkstra sp = new BidirectionalDijkstra(test, 0);
-		BidirectionalDijkstra sp1 = new BidirectionalDijkstra(sp, 0, 5);
-		BidirectionalDijkstra sp2 = new BidirectionalDijkstra(sp, 3, 4);
+		DijkstraEarlyStoppingBidirectional sp1 = new DijkstraEarlyStoppingBidirectional(sp, 0, 5);
+		DijkstraEarlyStoppingBidirectional sp2 = new DijkstraEarlyStoppingBidirectional(sp, 3, 4);
 
 		Assertions.assertThat(sp1.hasPathTo(5)).isTrue();
 		Assertions.assertThat(sp1.distTo(5)).isEqualTo((double) 6);

@@ -2,7 +2,7 @@ package org.algobench.algorithms.shortestpath;
 
 import edu.princeton.cs.algs4.*;
 
-public class BidirectionalDijkstra {
+public class DijkstraEarlyStoppingBidirectional {
     private double[] distL;
     private double[] distR;
     private double d;
@@ -13,9 +13,9 @@ public class BidirectionalDijkstra {
     private Edge[] edgeToR;
     private IndexMinPQ<Double> pqL;
     private IndexMinPQ<Double> pqR;
-    private int countRelaxedEdges;
+    private long countRelaxedEdges;
 
-    public int getCountRelaxedEdges() {
+    public long getCountRelaxedEdges() {
         return countRelaxedEdges;
     }
 
@@ -23,7 +23,7 @@ public class BidirectionalDijkstra {
         return d;
     }
 
-    public BidirectionalDijkstra(EdgeWeightedGraph graph, int source, int target) {
+    public DijkstraEarlyStoppingBidirectional(EdgeWeightedGraph graph, int source, int target) {
         // Initialize variables
         countRelaxedEdges = 0;
         this.distL = new double[graph.V()];

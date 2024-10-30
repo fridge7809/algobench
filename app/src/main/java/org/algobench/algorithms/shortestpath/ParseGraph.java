@@ -1,15 +1,10 @@
 package org.algobench.algorithms.shortestpath;
 
 import edu.princeton.cs.algs4.*;
-import org.algobench.algorithms.hashing.Murmurhash3;
 import org.graalvm.collections.Pair;
 
 import java.io.*;
-import java.math.BigInteger;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.StringTokenizer;
 
 public class ParseGraph {
@@ -28,7 +23,7 @@ public class ParseGraph {
 		HashMap<Integer, Pair<Double, Double>> vertices = HashMap.newHashMap(n);
 		EdgeWeightedGraph graph = new EdgeWeightedGraph(n);
 
-		// used for keeping trakc of hashes, to not have multiple with same hash
+		// map long id to int id
 		hashes = new HashMap<>();
 
 		for (int i = 0; i < n; i++) {
@@ -55,6 +50,14 @@ public class ParseGraph {
 		return graph;
 	}
 
+	public static EdgeWeightedGraph preProcessGraph(EdgeWeightedGraph graph) {
+		return null;
+	}
+
+	public static void query(EdgeWeightedGraph graph) {
+		return;
+	}
+
 	public static HashMap<Long, Integer> getHashMap(){
 		return hashes;
 	}
@@ -64,7 +67,7 @@ public class ParseGraph {
 			EdgeWeightedGraph graph = ParseGraph
 					.parseInput(new FileInputStream("app/src/test/resources/denmark.graph"));
 
-			DijkstraShortestPath sp = new DijkstraShortestPath(graph, 0, 10);
+			DijkstraEarlyStopping sp = new DijkstraEarlyStopping(graph, 0, 10);
 			System.out.println(sp.distTo(10));
 			// BidirectionalDijkstra bsp = new BidirectionalDijkstra(graph, 0, 10);
 		} catch (FileNotFoundException e) {
