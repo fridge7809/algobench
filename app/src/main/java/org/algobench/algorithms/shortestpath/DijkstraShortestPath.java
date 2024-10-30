@@ -9,12 +9,17 @@ public class DijkstraShortestPath {
 	private Edge[] edgeTo;
 	private IndexMinPQ<Double> pq;
 	private static int relax;
+	private static int countRelaxed;
+
+	public int getRelaxed() {
+		return countRelaxed;
+	}
 
 	public DijkstraShortestPath(EdgeWeightedGraph graph, int source) {
 		Iterator var3 = graph.edges().iterator();
 
-		while(var3.hasNext()) {
-			Edge e = (Edge)var3.next();
+		while (var3.hasNext()) {
+			Edge e = (Edge) var3.next();
 			if (e.weight() < 0.0) {
 				throw new IllegalArgumentException("edge " + e + " has negative weight");
 			}
@@ -25,7 +30,7 @@ public class DijkstraShortestPath {
 		this.validateVertex(source);
 
 		int v;
-		for(v = 0; v < graph.V(); ++v) {
+		for (v = 0; v < graph.V(); ++v) {
 			this.distTo[v] = Double.POSITIVE_INFINITY;
 		}
 
@@ -33,12 +38,12 @@ public class DijkstraShortestPath {
 		this.pq = new IndexMinPQ(graph.V());
 		this.pq.insert(source, this.distTo[source]);
 
-		while(!this.pq.isEmpty()) {
+		while (!this.pq.isEmpty()) {
 			v = this.pq.delMin();
 			Iterator var7 = graph.adj(v).iterator();
 
-			while(var7.hasNext()) {
-				Edge e = (Edge)var7.next();
+			while (var7.hasNext()) {
+				Edge e = (Edge) var7.next();
 				this.relax(e, v);
 			}
 		}
@@ -60,7 +65,7 @@ public class DijkstraShortestPath {
 		this.validateVertex(source);
 
 		int v;
-		for(v = 0; v < graph.V(); ++v) {
+		for (v = 0; v < graph.V(); ++v) {
 			this.distTo[v] = Double.POSITIVE_INFINITY;
 		}
 
@@ -87,6 +92,7 @@ public class DijkstraShortestPath {
 	private void relax(Edge e, int v) {
 		int w = e.other(v);
 		if (this.distTo[w] > this.distTo[v] + e.weight()) {
+			countRelaxed++;
 			this.distTo[w] = this.distTo[v] + e.weight();
 			this.edgeTo[w] = e;
 			if (this.pq.contains(w)) {
@@ -116,7 +122,7 @@ public class DijkstraShortestPath {
 			Stack<Edge> path = new Stack();
 			int x = v;
 
-			for(Edge e = this.edgeTo[v]; e != null; e = this.edgeTo[x]) {
+			for (Edge e = this.edgeTo[v]; e != null; e = this.edgeTo[x]) {
 				path.push(e);
 				x = e.other(x);
 			}
