@@ -1,97 +1,101 @@
-// package org.algobench.algorithms.shortestpath;
+package org.algobench.algorithms.shortestpath;
 
-// import edu.princeton.cs.algs4.Edge;
-// import edu.princeton.cs.algs4.EdgeWeightedGraph;
-// import net.jqwik.api.*;
-// import net.jqwik.api.lifecycle.BeforeContainer;
-// import org.assertj.core.api.Assertions;
+import edu.princeton.cs.algs4.Edge;
+import edu.princeton.cs.algs4.EdgeWeightedGraph;
+import net.jqwik.api.*;
+import net.jqwik.api.lifecycle.BeforeContainer;
+import org.assertj.core.api.Assertions;
 
-// import java.io.*;
-// import java.util.Objects;
-// import java.util.Scanner;
+import java.io.*;
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.Scanner;
+import java.util.StringTokenizer;
 
-// public class ShortestPathTest {
+public class ShortestPathTest {
 
-// 	static File file;
-// 	static EdgeWeightedGraph denmark;
-// 	static EdgeWeightedGraph degree;
-// 	static EdgeWeightedGraph shortestPath;
-// 	static EdgeWeightedGraph test;
-// 	static int n;
-// 	static int m;
+	static FileInputStream file;
+	static EdgeWeightedGraph denmark;
+    static HashMap<Long, Integer> denmarkHashes;
+	static EdgeWeightedGraph degree;
+    static HashMap<Long, Integer> degreeHashes;
+	static EdgeWeightedGraph dist;
+    static HashMap<Long, Integer> distHashes;
+	static EdgeWeightedGraph sp;
+    static HashMap<Long, Integer> spHashes;
+	static int n;
+	static int m;
 
 
-// 	@BeforeContainer
-// 	public static void init() throws IOException {
-// 		String resourceName = "denmark.graph";
-// 		ClassLoader classLoader = ParseGraph.class.getClassLoader();
-// 		file = new File(Objects.requireNonNull(classLoader.getResource(resourceName)).getFile());
-// 		//denmark = ParseGraph.parseInput(new FileInputStream(file));
+	@BeforeContainer
+	public static void init() throws IOException {
+        file = new FileInputStream("src/test/resources/denmark.graph");
+        denmarkHashes = ParseGraph.getHashMap();
+		denmark = ParseGraph.parseInput(file);
 
-// 		Scanner scanner = new Scanner(file);
-// 		n = scanner.nextInt();
-// 		m = scanner.nextInt();
+		file = new FileInputStream("src/test/resources/degree.graph");
+        degreeHashes = ParseGraph.getHashMap();
+		degree = ParseGraph.parseInput(file);
 
-// 		resourceName = "degree.graph";
-// 		classLoader = ParseGraph.class.getClassLoader();
-// 		file = new File(Objects.requireNonNull(classLoader.getResource(resourceName)).getFile());
-// 		// degree = ParseGraph.parseInput(new FileInputStream(file));
+		file = new FileInputStream("src/test/resources/dist.graph");
+        distHashes = ParseGraph.getHashMap();
+		dist = ParseGraph.parseInput(file);
 
-// 		resourceName = "dist.graph";
-// 		classLoader = ParseGraph.class.getClassLoader();
-// 		file = new File(Objects.requireNonNull(classLoader.getResource(resourceName)).getFile());
-// 		// shortestPath = ParseGraph.parseInput(new FileInputStream(file));
+		file = new FileInputStream("src/test/resources/sp.graph");
+        spHashes = ParseGraph.getHashMap();
+		sp = ParseGraph.parseInput(file);
+        file = new FileInputStream("src/test/resources/sp.graph");
+        
+        BufferedReader reader = new BufferedReader(new InputStreamReader(file), 1 << 16);
+		StringTokenizer tokenizer = new StringTokenizer(reader.readLine());
+		n = Integer.parseInt(tokenizer.nextToken());
+		m = Integer.parseInt(tokenizer.nextToken());
 
-// 		resourceName = "sp.graph";
-// 		classLoader = ParseGraph.class.getClassLoader();
-// 		file = new File(Objects.requireNonNull(classLoader.getResource(resourceName)).getFile());
-// 		test = ParseGraph.parseInput(new FileInputStream(file));
+	}
 
-// 	}
+	@Example
+	void graphHasCorrectNumberOfVertices_whenParsedFromFile() {
+		Assertions.assertThat(sp.V()).isEqualTo(n);
+	}
 
-// 	@Example
-// 	void graphHasCorrectNumberOfVertices_whenParsedFromFile() {
-// 		Assertions.assertThat(denmark.V()).isEqualTo(n);
-// 	}
+	@Example
+	void graphHasCorrectNumberOfEdges_whenParsedFromFile() {
+		Assertions.assertThat(sp.E()).isEqualTo(m);
+	}
 
-// 	@Example
-// 	void graphHasCorrectNumberOfEdges_whenParsedFromFile() {
-// 		Assertions.assertThat(denmark.E()).isEqualTo(m);
-// 	}
+	@Example
+	void graphHasNonNegativeWeights() {
+		denmark.edges().forEach(e -> Assertions.assertThat(e.weight()).isNotNegative());
+	}
 
-// 	@Example
-// 	void graphHasNonNegativeWeights() {
-// 		denmark.edges().forEach(e -> Assertions.assertThat(e.weight()).isNotNegative());
-// 	}
+	// @Example
+	// void graphHasPathTo() {
+	// 	BidirectionalDijkstra sp1 = new BidirectionalDijkstra(degree, 1);
+	// 	BidirectionalDijkstra sp2 = new BidirectionalDijkstra(degree, 2);
+	// 	BidirectionalDijkstra sp3 = new BidirectionalDijkstra(degree, 3);
 
-// 	// @Example
-// 	// void graphHasPathTo() {
-// 	// 	BidirectionalDijkstra sp1 = new BidirectionalDijkstra(degree, 1);
-// 	// 	BidirectionalDijkstra sp2 = new BidirectionalDijkstra(degree, 2);
-// 	// 	BidirectionalDijkstra sp3 = new BidirectionalDijkstra(degree, 3);
+	// 	Assertions.assertThat(sp1.hasPathTo(1)).isTrue();
+	// }
 
-// 	// 	Assertions.assertThat(sp1.hasPathTo(1)).isTrue();
-// 	// }
+	@Example
+	void shouldFindSP() {
+		// BidirectionalDijkstra sp = new BidirectionalDijkstra(test, 0);
+		BidirectionalDijkstra sp1 = new BidirectionalDijkstra(sp, 0, 5);
+		BidirectionalDijkstra sp2 = new BidirectionalDijkstra(sp, 3, 4);
 
-// 	@Example
-// 	void shouldFindSP() {
-// 		// BidirectionalDijkstra sp = new BidirectionalDijkstra(test, 0);
-// 		BidirectionalDijkstra sp1 = new BidirectionalDijkstra(test, 0, 5);
-// 		BidirectionalDijkstra sp2 = new BidirectionalDijkstra(test, 3, 4);
+		Assertions.assertThat(sp1.hasPathTo(5)).isTrue();
+		Assertions.assertThat(sp1.distTo(5)).isEqualTo((double) 6);
 
-// 		Assertions.assertThat(sp1.hasPathTo(5)).isTrue();
-// 		Assertions.assertThat(sp1.distTo(5)).isEqualTo((double) 6);
 
-// 		Assertions.assertThat(sp2.hasPathTo(4)).isTrue();
-// 		Assertions.assertThat(sp2.distTo(4)).isEqualTo((double) 8);
-// 	}
 
-// 	@Example
-// 	void graphEdgeWeightsSumCorrectly() {
-// 		int sum = 0;
-// 		for (Edge e : degree.edges())
-// 			sum += (int) e.weight();
-// 		Assertions.assertThat(sum).isEqualTo(30);
-// 	}
+	}
 
-// }
+	@Example
+	void graphEdgeWeightsSumCorrectly() {
+		int sum = 0;
+		for (Edge e : degree.edges())
+			sum += (int) e.weight();
+		Assertions.assertThat(sum).isEqualTo(30);
+	}
+
+}

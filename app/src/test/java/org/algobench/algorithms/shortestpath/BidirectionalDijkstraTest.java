@@ -1,15 +1,8 @@
 package org.algobench.algorithms.shortestpath;
 
 import edu.princeton.cs.algs4.*;
-import org.algobench.algorithms.hashing.Murmurhash3;
-import org.graalvm.collections.Pair;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.io.*;
-import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.StringTokenizer;
 
 import java.io.*;
 
@@ -32,7 +25,7 @@ public class BidirectionalDijkstraTest {
             throw new RuntimeException(e);
         }
         bidijkst = new BidirectionalDijkstra(graph, 0, 10);
-        dijkst = new DijkstraShortestPath(graph, 0);
+        dijkst = new DijkstraShortestPath(graph, 0, 10);
     }
 
 

@@ -17,6 +17,8 @@ public class ParseGraph {
 	// java -cp app/build/libs/app-all.jar
 	// org.algobench.algorithms.shortestpath.BidirectionalDijkstra
 
+	private static HashMap<Long, Integer> hashes;
+
 	public static EdgeWeightedGraph parseInput(InputStream inputStream) throws IOException {
 		BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream), 1 << 16);
 		StringTokenizer tokenizer = new StringTokenizer(reader.readLine());
@@ -27,23 +29,22 @@ public class ParseGraph {
 		EdgeWeightedGraph graph = new EdgeWeightedGraph(n);
 
 		// used for keeping trakc of hashes, to not have multiple with same hash
-		Map<Long, Integer> hashes = new HashMap<>();
+		hashes = new HashMap<>();
 
 		for (int i = 0; i < n; i++) {
 			tokenizer = new StringTokenizer(reader.readLine());
+			hashes.put(Long.parseLong(tokenizer.nextToken()), i);
 
-			hashes.put(Long.parseLong(tokenizer.nextToken()), n);
-			
 			double longitude = Double.parseDouble(tokenizer.nextToken());
 			double latitude = Double.parseDouble(tokenizer.nextToken());
-			vertices.put(n, Pair.create(longitude, latitude));
+			vertices.put(i, Pair.create(longitude, latitude));
 		}
 
 		for (int i = 0; i < m; i++) {
 			tokenizer = new StringTokenizer(reader.readLine());
 			long from = Long.parseLong(tokenizer.nextToken());
 			long to = Long.parseLong(tokenizer.nextToken());
-		
+
 			int fromInt = hashes.get(from);
 			int toInt = hashes.get(to);
 
@@ -54,19 +55,22 @@ public class ParseGraph {
 		return graph;
 	}
 
+	public static HashMap<Long, Integer> getHashMap(){
+		return hashes;
+	}
+
 	public static void main(String[] args) {
 		try {
 			EdgeWeightedGraph graph = ParseGraph
-					.parseInput(new FileInputStream("app/src/test/resources/testing.graph"));
-			
-			// DijkstraShortestPath sp = new DijkstraShortestPath(graph, 0);
-			BidirectionalDijkstra bsp = new BidirectionalDijkstra(graph, 0, 10);
+					.parseInput(new FileInputStream("app/src/test/resources/denmark.graph"));
+
+			DijkstraShortestPath sp = new DijkstraShortestPath(graph, 0, 10);
+			System.out.println(sp.distTo(10));
+			// BidirectionalDijkstra bsp = new BidirectionalDijkstra(graph, 0, 10);
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-
 	}
-
 }
