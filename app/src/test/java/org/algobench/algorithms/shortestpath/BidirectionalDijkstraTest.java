@@ -41,7 +41,7 @@ public class BidirectionalDijkstraTest {
         assertTrue(dijkst.distTo(10) == bidijkst.getShortestPath());
     }
 
-    // If we didn't stop early, we would relax all edges twice (one time for each dijkstra). Therefore TotalEdges*2 should be larger than the relaxed edges counter.
+    // If we didn't stop early, we would relax all edges twice (one time for each dijkstra). Therefore TotalEdges*2 should be larger than the relaxed edges
     @Test
     public void testEarlyStoppingCriteria() {
         int totalEdges = graph.E();
