@@ -54,8 +54,8 @@ public class DijkstraShortestPath {
 
 	private void relax(Edge e, int v) {
 		int w = e.other(v);
+		countRelaxed++;
 		if (this.distTo[w] > this.distTo[v] + e.weight()) {
-			countRelaxed++;
 			this.distTo[w] = this.distTo[v] + e.weight();
 			this.edgeTo[w] = e;
 			if (this.pq.contains(w)) {

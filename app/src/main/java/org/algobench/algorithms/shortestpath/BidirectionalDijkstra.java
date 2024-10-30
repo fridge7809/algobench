@@ -53,7 +53,6 @@ public class BidirectionalDijkstra {
             // Early stopping criteria: stop searching when the path about to be searched is
             // longer than the current shortest path
             if (pqL.minKey() + pqR.minKey() >= d) {
-                System.out.println(pqL.minKey() + " - " + pqR.minKey() + " - " + d);
                 break;
             }
 
@@ -74,7 +73,6 @@ public class BidirectionalDijkstra {
             settleVertex(graph, v, false);
 
         }
-        System.out.println(d); // shortest path :D
     }
 
     private void settleVertex(EdgeWeightedGraph graph, int vertex, boolean isLeft) {
