@@ -38,15 +38,20 @@ public class BidirectionalDijkstraTest {
 
     @Test
     public void testCorrectShortestPath(){
-        System.out.println(dijkst.distTo(10) + " one");
-        System.out.println(bidijkst.getShortestPath() + " two");
         assertTrue(dijkst.distTo(10) == bidijkst.getShortestPath());
     }
 
+    // If we didn't stop early, we would relax all edges twice (one time for each dijkstra). Therefore TotalEdges*2 should be larger than the relaxed edges counter.
     @Test
     public void testEarlyStoppingCriteria() {
         int totalEdges = graph.E();
-        assertTrue(totalEdges > bidijkst.getCountRelaxedEdges());
+        assertTrue(totalEdges*2 > bidijkst.getCountRelaxedEdges());
     }
+
+    /**
+     * Notes:
+     * we need the logic of taking 1000 (s,t) pairs, to test both dijkstra and bidijkstra
+     * x
+     */
 
 }

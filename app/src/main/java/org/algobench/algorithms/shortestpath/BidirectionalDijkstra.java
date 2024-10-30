@@ -99,11 +99,10 @@ public class BidirectionalDijkstra {
 
     private void relax(Edge e, int v, boolean isLeft) {
         int w = e.other(v);
-        // System.out.println("relaxed: " + e + " V: " + v);
+        countRelaxedEdges++;
         if (isLeft) {
             // Update distance to w if a shorter path is found
             if (this.distL[w] > this.distL[v] + e.weight()) {
-                countRelaxedEdges++;
                 this.distL[w] = this.distL[v] + e.weight(); // Update distance based on edge weight
                 this.edgeToL[w] = e;
                 if (this.pqL.contains(w)) {
@@ -115,7 +114,6 @@ public class BidirectionalDijkstra {
         } else {
             // Update distance to w if a shorter path is found
             if (this.distR[w] > this.distR[v] + e.weight()) {
-                countRelaxedEdges++;
                 this.distR[w] = this.distR[v] + e.weight(); // Update distance based on edge weight
                 this.edgeToR[w] = e;
                 if (this.pqR.contains(w)) {
