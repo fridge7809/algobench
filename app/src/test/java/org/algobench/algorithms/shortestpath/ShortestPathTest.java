@@ -1,7 +1,5 @@
 package org.algobench.algorithms.shortestpath;
 
-import edu.princeton.cs.algs4.Edge;
-import edu.princeton.cs.algs4.EdgeWeightedGraph;
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.BeforeContainer;
 import org.assertj.core.api.Assertions;

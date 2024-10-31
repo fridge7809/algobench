@@ -39,6 +39,8 @@ public class ContractionHierachiesPreprocessing {
     }
 
     private void orderNodeByImportance() {
+        long before = System.nanoTime();
+
         pq = new PriorityQueue<Integer>(
                 (a, b) -> Integer.compare(calculateRank(a), calculateRank(b)));
         for (int v = 0; v < graph.V(); v++) {
@@ -54,7 +56,11 @@ public class ContractionHierachiesPreprocessing {
                 nodeToRank.put(v, graph.degree(v));
                 contractNode(v);
                 scCount++;
-                if(scCount%2000 == 0) System.out.println(scCount);
+                if(scCount%2000 == 0) {
+                    long after = System.nanoTime();
+                    System.out.println(scCount + " in time in seconds: " + (after - before) / 1_000_000_000);
+                    before = System.nanoTime();
+                }
             }
         }
     }
@@ -95,8 +101,8 @@ public class ContractionHierachiesPreprocessing {
                         DijkstraLocalSearch localSearch = new DijkstraLocalSearch(graph, u, w, node, sumWeight,
                                 contractedNodes);
                         if (localSearch.distTo(w) > sumWeight) {
-                            shortcuts.add(new Edge(u, w, sumWeight));
-                            graph.addEdge(new Edge(u, w, sumWeight));
+                            shortcuts.add(new Edge(u, w, sumWeight, true));
+                            graph.addEdge(new Edge(u, w, sumWeight, true));
                         }
                         contractedNodes[node] = true;
                     }
