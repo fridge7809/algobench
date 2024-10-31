@@ -5,6 +5,7 @@ import org.graalvm.collections.Pair;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.Scanner;
 import java.util.StringTokenizer;
 
 
@@ -51,10 +52,7 @@ public class ParseGraph {
 
 		return graph;
 	}
-	
-	public static void query(EdgeWeightedGraph graph) {
-		return;
-	}
+
 
 	public static HashMap<Long, Integer> getHashMap(){
 		return hashes;

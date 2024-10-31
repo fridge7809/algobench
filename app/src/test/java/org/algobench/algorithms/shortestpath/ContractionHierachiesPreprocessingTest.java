@@ -8,13 +8,12 @@ import java.util.HashMap;
 import java.util.StringTokenizer;
 
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 
 import edu.princeton.cs.algs4.EdgeWeightedGraph;
 import net.jqwik.api.Example;
 import net.jqwik.api.lifecycle.BeforeContainer;
 
-public class ContractionHierachiesTest {
+public class ContractionHierachiesPreprocessingTest {
 
     static FileInputStream file;
     static EdgeWeightedGraph denmark;
@@ -27,7 +26,7 @@ public class ContractionHierachiesTest {
     static HashMap<Long, Integer> spHashes;
     static EdgeWeightedGraph testing;
     static HashMap<Long, Integer> testingHashes;
-    static ContractionHierachies ch;
+    static ContractionHierachiesPreprocessing ch;
     static int n;
     static int m;
 
@@ -42,7 +41,7 @@ public class ContractionHierachiesTest {
         StringTokenizer tokenizer = new StringTokenizer(reader.readLine());
         n = Integer.parseInt(tokenizer.nextToken());
         m = Integer.parseInt(tokenizer.nextToken());
-        ch = new ContractionHierachies(testing);
+        ch = new ContractionHierachiesPreprocessing(testing);
     }
 
     @Example

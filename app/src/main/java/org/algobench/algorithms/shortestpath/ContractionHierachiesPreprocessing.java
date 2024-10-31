@@ -10,9 +10,8 @@ import java.util.Map;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.PriorityQueue;
-import java.util.Comparator;
 
-public class ContractionHierachies {
+public class ContractionHierachiesPreprocessing {
 
     private EdgeWeightedGraph graph;
     // private List<Integer> nodeOrder;
@@ -21,7 +20,7 @@ public class ContractionHierachies {
     private PriorityQueue<Integer> pq;
     private boolean[] contractedNodes;
 
-    public ContractionHierachies(EdgeWeightedGraph graph) {
+    public ContractionHierachiesPreprocessing(EdgeWeightedGraph graph) {
         this.graph = graph;
         // nodeOrder = new ArrayList<>();
         nodeToRank = new HashMap<>();
@@ -109,9 +108,23 @@ public class ContractionHierachies {
     public static void main(String[] args) {
         try {
             EdgeWeightedGraph graph = ParseGraph
-                    .parseInput(new FileInputStream("app/src/test/resources/testing.graph"));
-            ContractionHierachies ch = new ContractionHierachies(graph);
-            System.out.println(ch.getShortcuts());
+                    .parseInput(new FileInputStream("app/src/test/resources/denmark.graph"));
+            ContractionHierachiesPreprocessing ch = new ContractionHierachiesPreprocessing(graph);
+            StringBuilder sb = new StringBuilder();
+            sb.append(graph.V()).append(" ").append(graph.E()).append("\n");
+            for (Integer v : ch.nodeOrder) {
+                sb.append(v).append(" ").append(ch.nodeToRank.get(v)).append("\n");
+            }
+            for (Edge e : graph.edges()) {
+                sb.append(e).append(" 1").append('\n');
+            }
+            for (Edge e : ch.shortcuts) {
+                sb.append(e).append(" -1").append("\n");
+            }
+            File output = new File("denmark_processed.graph");
+            FileWriter fw = new FileWriter(output);
+            fw.write(sb.toString());
+            fw.close();
             System.out.println(ch.getShortcuts().size());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
