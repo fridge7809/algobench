@@ -1,11 +1,9 @@
 package org.algobench.algorithms.shortestpath;
 
-import edu.princeton.cs.algs4.*;
 import org.graalvm.collections.Pair;
 
 import java.io.*;
 import java.util.HashMap;
-import java.util.Scanner;
 import java.util.StringTokenizer;
 
 
@@ -47,7 +45,7 @@ public class ParseGraph {
 			int toInt = hashes.get(to);
 
 			double weight = Double.parseDouble(tokenizer.nextToken());
-			graph.addEdge(new Edge(fromInt, toInt, weight));
+			graph.addEdge(new Edge(fromInt, toInt, weight, false));
 		}
 
 		return graph;

@@ -1,6 +1,8 @@
 package org.algobench.algorithms.shortestpath;
 
-import edu.princeton.cs.algs4.*;
+
+import edu.princeton.cs.algs4.IndexMinPQ;
+import edu.princeton.cs.algs4.Stack;
 
 import java.util.Iterator;
 

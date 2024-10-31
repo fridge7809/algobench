@@ -92,8 +92,8 @@ public class ContractionHierachiesPreprocessing {
                     DijkstraLocalSearch localSearch = new DijkstraLocalSearch(graph, u, w, node, sumWeight, contractedNodes);
 
                     if (localSearch.distTo(w) > sumWeight) {
-                        shortcuts.add(new Edge(u, w, sumWeight));
-                        graph.addEdge(new Edge(u, w, sumWeight));
+                        shortcuts.add(new Edge(u, w, sumWeight, true));
+                        graph.addEdge(new Edge(u, w, sumWeight, true));
                         scCount++;
                         if (scCount % 50 == 0)
                             System.out.println(scCount);
@@ -108,23 +108,26 @@ public class ContractionHierachiesPreprocessing {
     public static void main(String[] args) {
         try {
             EdgeWeightedGraph graph = ParseGraph
-                    .parseInput(new FileInputStream("app/src/test/resources/testing.graph"));
+                    .parseInput(new FileInputStream("app/src/test/resources/denmark.graph"));
             ContractionHierachiesPreprocessing ch = new ContractionHierachiesPreprocessing(graph);
-            // StringBuilder sb = new StringBuilder();
-            // sb.append(graph.V()).append(" ").append(graph.E()).append("\n");
-            // for (Integer v : ch.pq) {
-            //     sb.append(v).append(" ").append(ch.nodeToRank.get(v)).append("\n");
-            // }
-            // for (Edge e : graph.edges()) {
-            //     sb.append(e).append(" 1").append('\n');
-            // }
-            // for (Edge e : ch.shortcuts) {
-            //     sb.append(e).append(" -1").append("\n");
-            // }
-            // File output = new File("denmark_processed.graph");
-            // FileWriter fw = new FileWriter(output);
-            // fw.write(sb.toString());
-            // fw.close();
+            System.out.println(ch.shortcuts.size());
+             StringBuilder sb = new StringBuilder();
+             sb.append(graph.V()).append(" ").append(graph.E()).append("\n");
+             for (Integer v : ch.pq) {
+                 sb.append(v).append(" ").append(ch.nodeToRank.get(v)).append("\n");
+             }
+             for (Edge e : graph.edges()) {
+                 if (e.isShortcut())  {
+                     sb.append(e).append(" 1").append("\n");
+                 } else {
+                     sb.append(e).append(" -1").append("\n");
+                 }
+
+             }
+             File output = new File("denmark_processed.graph");
+             FileWriter fw = new FileWriter(output);
+             fw.write(sb.toString());
+             fw.close();
             System.out.println(ch.getShortcuts().size());
             System.out.println(ch.getShortcuts());
 

@@ -24,7 +24,7 @@ public class ContractionHierachiesPreprocessingTest {
     static HashMap<Long, Integer> distHashes;
     static EdgeWeightedGraph sp;
     static HashMap<Long, Integer> spHashes;
-    static EdgeWeightedGraph testing;
+    static org.algobench.algorithms.shortestpath.EdgeWeightedGraph testing;
     static HashMap<Long, Integer> testingHashes;
     static ContractionHierachiesPreprocessing ch;
     static int n;

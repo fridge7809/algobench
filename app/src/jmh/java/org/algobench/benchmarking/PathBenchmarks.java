@@ -1,6 +1,5 @@
 package org.algobench.benchmarking;
 
-import edu.princeton.cs.algs4.EdgeWeightedGraph;
 import org.algobench.algorithms.shortestpath.DijkstraEarlyStopping;
 import org.algobench.algorithms.shortestpath.ParseGraph;
 import org.algobench.algorithms.shortestpath.DijkstraEarlyStoppingBidirectional;
