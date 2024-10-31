@@ -44,14 +44,17 @@ public class ContractionHierachiesPreprocessing {
         for (int v = 0; v < graph.V(); v++) {
             pq.add(v);
         }
+        int scCount = 0;
         while (!pq.isEmpty()) {
             int v = pq.poll();
             int importance = calculateRank(v);
-            if(pq.peek() != null && calculateRank(pq.peek()) < importance) {
+            if (pq.peek() != null && calculateRank(pq.peek()) < importance) {
                 pq.add(v);
             } else {
                 nodeToRank.put(v, graph.degree(v));
                 contractNode(v);
+                scCount++;
+                if(scCount%2000 == 0) System.out.println(scCount);
             }
         }
     }
@@ -68,7 +71,6 @@ public class ContractionHierachiesPreprocessing {
 
     public void contractNode(int node) {
         // orderNodeByImportance();
-        int scCount = 0;
         List<Edge> adjacentEdges = new ArrayList<Edge>();
         for (Edge e : graph.adj(node)) {
             adjacentEdges.add(e);
@@ -89,16 +91,15 @@ public class ContractionHierachiesPreprocessing {
                      * ignoring v.
                      */
 
-                    DijkstraLocalSearch localSearch = new DijkstraLocalSearch(graph, u, w, node, sumWeight, contractedNodes);
-
-                    if (localSearch.distTo(w) > sumWeight) {
-                        shortcuts.add(new Edge(u, w, sumWeight));
-                        graph.addEdge(new Edge(u, w, sumWeight));
-                        scCount++;
-                        if (scCount % 50 == 0)
-                            System.out.println(scCount);
+                    if (node < u && node < w) {
+                        DijkstraLocalSearch localSearch = new DijkstraLocalSearch(graph, u, w, node, sumWeight,
+                                contractedNodes);
+                        if (localSearch.distTo(w) > sumWeight) {
+                            shortcuts.add(new Edge(u, w, sumWeight));
+                            graph.addEdge(new Edge(u, w, sumWeight));
+                        }
+                        contractedNodes[node] = true;
                     }
-                    contractedNodes[node] = true;
                 }
             }
 
@@ -113,13 +114,13 @@ public class ContractionHierachiesPreprocessing {
             // StringBuilder sb = new StringBuilder();
             // sb.append(graph.V()).append(" ").append(graph.E()).append("\n");
             // for (Integer v : ch.pq) {
-            //     sb.append(v).append(" ").append(ch.nodeToRank.get(v)).append("\n");
+            // sb.append(v).append(" ").append(ch.nodeToRank.get(v)).append("\n");
             // }
             // for (Edge e : graph.edges()) {
-            //     sb.append(e).append(" 1").append('\n');
+            // sb.append(e).append(" 1").append('\n');
             // }
             // for (Edge e : ch.shortcuts) {
-            //     sb.append(e).append(" -1").append("\n");
+            // sb.append(e).append(" -1").append("\n");
             // }
             // File output = new File("denmark_processed.graph");
             // FileWriter fw = new FileWriter(output);
