@@ -36,8 +36,7 @@ public class DijkstraLocalSearch {
         this.distTo[source] = 0.0;
         this.pq = new IndexMinPQ(graph.V());
         this.pq.insert(source, this.distTo[source]);
-        int hopLimit = 0;
-        while (!this.pq.isEmpty() && hopLimit < 1) {
+        while (!this.pq.isEmpty()) {
             v = this.pq.delMin();
             if (distTo(v) > sumWeight) {
                 break;
@@ -46,12 +45,11 @@ public class DijkstraLocalSearch {
 
             while (adjecentVerticyIterator.hasNext()) {
                 Edge e = (Edge) adjecentVerticyIterator.next();
-                if (e.other(v) != excluded && !contracted[e.other(v)]) {
+                if (e.other(v) != excluded) {
                     countRelaxed++;
                     this.relax(e, v);
                 }
             }
-            hopLimit++;
         }
 
     }

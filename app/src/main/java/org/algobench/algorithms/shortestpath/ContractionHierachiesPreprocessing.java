@@ -108,24 +108,26 @@ public class ContractionHierachiesPreprocessing {
     public static void main(String[] args) {
         try {
             EdgeWeightedGraph graph = ParseGraph
-                    .parseInput(new FileInputStream("app/src/test/resources/denmark.graph"));
+                    .parseInput(new FileInputStream("app/src/test/resources/testing.graph"));
             ContractionHierachiesPreprocessing ch = new ContractionHierachiesPreprocessing(graph);
-            StringBuilder sb = new StringBuilder();
-            sb.append(graph.V()).append(" ").append(graph.E()).append("\n");
-            for (Integer v : ch.nodeOrder) {
-                sb.append(v).append(" ").append(ch.nodeToRank.get(v)).append("\n");
-            }
-            for (Edge e : graph.edges()) {
-                sb.append(e).append(" 1").append('\n');
-            }
-            for (Edge e : ch.shortcuts) {
-                sb.append(e).append(" -1").append("\n");
-            }
-            File output = new File("denmark_processed.graph");
-            FileWriter fw = new FileWriter(output);
-            fw.write(sb.toString());
-            fw.close();
+            // StringBuilder sb = new StringBuilder();
+            // sb.append(graph.V()).append(" ").append(graph.E()).append("\n");
+            // for (Integer v : ch.pq) {
+            //     sb.append(v).append(" ").append(ch.nodeToRank.get(v)).append("\n");
+            // }
+            // for (Edge e : graph.edges()) {
+            //     sb.append(e).append(" 1").append('\n');
+            // }
+            // for (Edge e : ch.shortcuts) {
+            //     sb.append(e).append(" -1").append("\n");
+            // }
+            // File output = new File("denmark_processed.graph");
+            // FileWriter fw = new FileWriter(output);
+            // fw.write(sb.toString());
+            // fw.close();
             System.out.println(ch.getShortcuts().size());
+            System.out.println(ch.getShortcuts());
+
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
