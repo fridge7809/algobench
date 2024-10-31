@@ -6,8 +6,6 @@ import org.graalvm.collections.Pair;
 import java.io.*;
 import java.util.HashMap;
 import java.util.StringTokenizer;
-import java.util.ArrayList;
-import java.util.List;
 
 
 
@@ -53,32 +51,7 @@ public class ParseGraph {
 
 		return graph;
 	}
-
-	public static EdgeWeightedGraph preProcessGraph(EdgeWeightedGraph graph) {
-		for (int v = 0; v < graph.V(); v++) {
-			List<Edge> adjacentVertices = new ArrayList<Edge>();
-			for(Edge e : graph.adj(v)){
-				int vertex = e.other(v);
-				if(vertex > v) adjacentVertices.add(e);
-			}
-			for(Edge j : adjacentVertices) {
-				for(Edge k : adjacentVertices)
-				if(k != j) {
-					int u = j.other(v);
-					int w = k.other(v);
-					double sumWeight = j.weight() + k.weight();
-
-					DijkstraEarlyStopping localSearch = new DijkstraEarlyStopping(graph, u, w);
-
-					if(localSearch.distTo(w) <= sumWeight) {
-						graph.addEdge(new Edge(u, w, sumWeight));
-					}
-				}
-			}
-		}
-		return null;
-	}
-
+	
 	public static void query(EdgeWeightedGraph graph) {
 		return;
 	}
