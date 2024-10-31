@@ -14,7 +14,7 @@ public class DijkstraLocalSearch {
         return countRelaxed;
     }
 
-    public DijkstraLocalSearch(EdgeWeightedGraph graph, int source, int target, int excluded, double sumWeight) {
+    public DijkstraLocalSearch(EdgeWeightedGraph graph, int source, int target, int excluded, double sumWeight, boolean[] contracted) {
         Iterator<Edge> edgeIterator = graph.edges().iterator();
 
         while (edgeIterator.hasNext()) {
@@ -38,14 +38,14 @@ public class DijkstraLocalSearch {
         this.pq.insert(source, this.distTo[source]);
         while (!this.pq.isEmpty()) {
             v = this.pq.delMin();
-            if (v > sumWeight) {
+            if (distTo(v) > sumWeight) {
                 break;
             }
             Iterator<Edge> adjecentVerticyIterator = graph.adj(v).iterator();
 
             while (adjecentVerticyIterator.hasNext()) {
                 Edge e = (Edge) adjecentVerticyIterator.next();
-                if (e.other(v) != excluded) {
+                if (e.other(v) != excluded && !contracted[e.other(v)]) {
                     countRelaxed++;
                     this.relax(e, v);
                 }

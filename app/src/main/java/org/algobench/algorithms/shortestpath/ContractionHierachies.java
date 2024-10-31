@@ -15,83 +15,103 @@ import java.util.Comparator;
 public class ContractionHierachies {
 
     private EdgeWeightedGraph graph;
-    private List<Integer> nodeOrder;
+    // private List<Integer> nodeOrder;
     private Map<Integer, Integer> nodeToRank; // maps node id to node rank
     private Set<Edge> shortcuts;
+    private PriorityQueue<Integer> pq;
+    private boolean[] contractedNodes;
 
     public ContractionHierachies(EdgeWeightedGraph graph) {
         this.graph = graph;
-        nodeOrder = new ArrayList<>();
+        // nodeOrder = new ArrayList<>();
         nodeToRank = new HashMap<>();
         shortcuts = new HashSet<>();
-        preProcessGraph();
+        contractedNodes = new boolean[graph.V()];
+        orderNodeByImportance();
     }
 
     public Set<Edge> getShortcuts() {
         return shortcuts;
     }
 
-    public Integer calculateRank(Integer v) {
+    public Integer calculateRank(int v) {
         // refactor rank calculation???
         return graph.degree(v);
     }
 
     private void orderNodeByImportance() {
-        PriorityQueue<Integer> pq = new PriorityQueue<Integer>(
+        pq = new PriorityQueue<Integer>(
                 (a, b) -> Integer.compare(calculateRank(a), calculateRank(b)));
         for (int v = 0; v < graph.V(); v++) {
             pq.add(v);
         }
         while (!pq.isEmpty()) {
             int v = pq.poll();
-            nodeOrder.add(v);
-            nodeToRank.put(v, graph.degree(v));
+            int importance = calculateRank(v);
+            if(pq.peek() != null && calculateRank(pq.peek()) < importance) {
+                pq.add(v);
+            } else {
+                nodeToRank.put(v, graph.degree(v));
+                contractNode(v);
+            }
         }
     }
 
-    public void preProcessGraph() {
-        orderNodeByImportance();
+    // compares whether two edges have the same vertices.
+    public Boolean compareTwoEdges(Edge a, Edge b) {
+        int av1 = a.either();
+        int av2 = a.other(av1);
+        int bv1 = b.either();
+        int bv2 = b.other(bv1);
 
-        for (int v = 0; v < nodeOrder.size(); v++) {
-            List<Edge> adjacentVertices = new ArrayList<Edge>();
-            int contractingV = nodeOrder.get(v);
-            for (Edge e : graph.adj(contractingV)) {
-                int vertex = e.other(contractingV);
-                // if (vertex > contractingV)
-                adjacentVertices.add(e);
-            }
-            for (Edge j : adjacentVertices) {
-                for (Edge k : adjacentVertices)
-                    if (k != j) {
-                        int u = j.other(contractingV);
-                        int w = k.other(contractingV);
-                        double sumWeight = j.weight() + k.weight();
+        return (av1 == bv1 && av2 == bv2) || (av1 == bv2 && av2 == bv1);
+    }
 
-                        /**
-                         * Dijkstra localsearch searches from one adjacent vertex (u) to other adjacent
-                         * vertex (w), ignoring v.
-                         * We create a new shortcut if and only if, the shortest path found is larger
-                         * than the sum of the weights.
-                         * We do not create a shortcut, if we can find a shorter way from u to w, when
-                         * ignoring v.
-                         */
+    public void contractNode(int node) {
+        // orderNodeByImportance();
+        int scCount = 0;
+        List<Edge> adjacentEdges = new ArrayList<Edge>();
+        for (Edge e : graph.adj(node)) {
+            adjacentEdges.add(e);
+        }
+        for (Edge j : adjacentEdges) {
+            for (Edge k : adjacentEdges) {
+                if (k != j) {
+                    int u = j.other(node);
+                    int w = k.other(node);
+                    double sumWeight = j.weight() + k.weight();
 
-                        DijkstraLocalSearch localSearch = new DijkstraLocalSearch(graph, u, w, contractingV, sumWeight);
+                    /**
+                     * Dijkstra localsearch searches from one adjacent vertex (u) to other adjacent
+                     * vertex (w), ignoring v.
+                     * We create a new shortcut if and only if, the shortest path found is larger
+                     * than the sum of the weights.
+                     * We do not create a shortcut, if we can find a shorter way from u to w, when
+                     * ignoring v.
+                     */
 
-                        if (localSearch.distTo(w) > sumWeight) {
-                            shortcuts.add(new Edge(u, w, sumWeight));
-                            graph.addEdge(new Edge(u, w, sumWeight));
-                        }
+                    DijkstraLocalSearch localSearch = new DijkstraLocalSearch(graph, u, w, node, sumWeight, contractedNodes);
+
+                    if (localSearch.distTo(w) > sumWeight) {
+                        shortcuts.add(new Edge(u, w, sumWeight));
+                        graph.addEdge(new Edge(u, w, sumWeight));
+                        scCount++;
+                        if (scCount % 50 == 0)
+                            System.out.println(scCount);
                     }
+                    contractedNodes[node] = true;
+                }
             }
+
         }
     }
 
     public static void main(String[] args) {
         try {
             EdgeWeightedGraph graph = ParseGraph
-                    .parseInput(new FileInputStream("app/src/test/resources/denmark.graph"));
+                    .parseInput(new FileInputStream("app/src/test/resources/testing.graph"));
             ContractionHierachies ch = new ContractionHierachies(graph);
+            System.out.println(ch.getShortcuts());
             System.out.println(ch.getShortcuts().size());
         } catch (FileNotFoundException e) {
             e.printStackTrace();
