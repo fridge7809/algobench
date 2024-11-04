@@ -1,6 +1,7 @@
 package org.algobench.algorithms.shortestpath;
 
-import edu.princeton.cs.algs4.*;
+import edu.princeton.cs.algs4.IndexMinPQ;
+import edu.princeton.cs.algs4.Stack;
 
 public class DijkstraEarlyStoppingBidirectional {
     private double[] distL;

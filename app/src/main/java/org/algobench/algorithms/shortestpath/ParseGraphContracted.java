@@ -19,15 +19,13 @@ public class ParseGraphContracted {
 		int n = scanner.nextInt();
 		int m = scanner.nextInt();
 		EdgeWeightedGraph graph = new EdgeWeightedGraph(n, m);
-		scanner.nextLine();
+		//scanner.nextLine();
 		for (int i = 0; i < n; i++) {
-			String line = scanner.nextLine();
-			String[] tokens = line.split(" ");
-			long id = Long.parseLong(tokens[0]);
-			long rank = Long.parseLong(tokens[1]);
-
+			int id = scanner.nextInt();
+			int rank = scanner.nextInt();
 		}
 		for (int i = 0; i < m; i++) {
+			int v = scanner.nextInt();
 			String line = scanner.nextLine();
 			String[] tokens = line.split(" ");
 			String fromTo = tokens[0];

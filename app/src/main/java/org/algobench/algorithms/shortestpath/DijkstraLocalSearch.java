@@ -11,36 +11,24 @@ public class DijkstraLocalSearch {
     private Edge[] edgeTo;
     private IndexMinPQ<Double> pq;
     private static long countRelaxed;
+    private EdgeWeightedGraph graph;
 
     public long getRelaxed() {
         return countRelaxed;
     }
 
-    public DijkstraLocalSearch(EdgeWeightedGraph graph, int source, int target, int excluded, double sumWeight, boolean[] contracted) {
-        Iterator<Edge> edgeIterator = graph.edges().iterator();
+    public DijkstraLocalSearch(EdgeWeightedGraph graph) {
+        this.graph = graph;
+        initDijkstra();
+    }
 
-        while (edgeIterator.hasNext()) {
-            Edge e = (Edge) edgeIterator.next();
-            if (e.weight() < 0.0) {
-                throw new IllegalArgumentException("edge " + e + " has negative weight");
-            }
-        }
-
-        this.distTo = new double[graph.V()];
-        this.edgeTo = new Edge[graph.V()];
-        this.validateVertex(source);
-
-        int v;
-        for (v = 0; v < graph.V(); ++v) {
-            this.distTo[v] = Double.POSITIVE_INFINITY;
-        }
-
+    public void searchGraph (int source, int target, int excluded, double sumWeight, boolean[] contracted) {
         this.distTo[source] = 0.0;
         this.pq = new IndexMinPQ(graph.V());
         this.pq.insert(source, this.distTo[source]);
         boolean oneHopStop = true;
         while (!this.pq.isEmpty() && oneHopStop) {
-            v = this.pq.delMin();
+            int v = this.pq.delMin();
             if (distTo(v) > sumWeight) {
                 break;
             }
@@ -55,7 +43,26 @@ public class DijkstraLocalSearch {
             }
             oneHopStop = false;
         }
+    }
 
+    private void initDijkstra() {
+        Iterator<Edge> edgeIterator = graph.edges().iterator();
+
+        while (edgeIterator.hasNext()) {
+            Edge e = (Edge) edgeIterator.next();
+            if (e.weight() < 0.0) {
+                throw new IllegalArgumentException("edge " + e + " has negative weight");
+            }
+        }
+
+        this.distTo = new double[graph.V()];
+        this.edgeTo = new Edge[graph.V()];
+        //this.validateVertex(source);
+
+        int v;
+        for (v = 0; v < graph.V(); ++v) {
+            this.distTo[v] = Double.POSITIVE_INFINITY;
+        }
     }
 
     private void relax(Edge e, int v) {

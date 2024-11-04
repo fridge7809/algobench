@@ -34,7 +34,6 @@ public class PathBenchmarks {
 			state.sumRelaxed += path.getCountRelaxedEdges();
 		}
 	}
-
 	@Benchmark
 	@BenchmarkMode(Mode.AverageTime)
 	@OutputTimeUnit(TimeUnit.SECONDS)

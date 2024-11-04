@@ -14,6 +14,7 @@ import java.util.PriorityQueue;
 public class ContractionHierachiesPreprocessing {
 
     private EdgeWeightedGraph graph;
+    private DijkstraLocalSearch dijkstraLocalSearch;
     // private List<Integer> nodeOrder;
     private Map<Integer, Integer> nodeToRank; // maps node id to node rank
     private Set<Edge> shortcuts;
@@ -41,6 +42,7 @@ public class ContractionHierachiesPreprocessing {
     private void orderNodeByImportance() {
         long before = System.nanoTime();
 
+        dijkstraLocalSearch = new DijkstraLocalSearch(graph);
         pq = new PriorityQueue<Integer>(
                 (a, b) -> Integer.compare(calculateRank(a), calculateRank(b)));
         for (int v = 0; v < graph.V(); v++) {
@@ -56,7 +58,7 @@ public class ContractionHierachiesPreprocessing {
                 nodeToRank.put(v, graph.degree(v));
                 contractNode(v);
                 scCount++;
-                if(scCount%2000 == 0) {
+                if (scCount % 2000 == 0) {
                     long after = System.nanoTime();
                     System.out.println(scCount + " in time in seconds: " + (after - before) / 1_000_000_000);
                     before = System.nanoTime();
@@ -74,6 +76,22 @@ public class ContractionHierachiesPreprocessing {
 
         return (av1 == bv1 && av2 == bv2) || (av1 == bv2 && av2 == bv1);
     }
+
+    /**
+     * 
+     * Node to self :D
+     * 
+     * We need to optimize contractNode.
+     * It should be possible to do by not loading the entire graph into the
+     * localDijsktra search
+     * Try out:
+     * - use the distTo logic from dijsktra in here, but only for the nodes that are
+     * adjacent to the node we are contracting
+     * - Maybe update the data structure of graph and edges??
+     * - Maybe initialize a mini graph in the loop, that only contains the nodes
+     * that are adjacent to the node we are contracting
+     * 
+     */
 
     public void contractNode(int node) {
         // orderNodeByImportance();
@@ -98,9 +116,11 @@ public class ContractionHierachiesPreprocessing {
                      */
 
                     if (node < u && node < w) {
-                        DijkstraLocalSearch localSearch = new DijkstraLocalSearch(graph, u, w, node, sumWeight,
-                                contractedNodes);
-                        if (localSearch.distTo(w) > sumWeight) {
+                        // DijkstraLocalSearch localSearch = new DijkstraLocalSearch(graph, u, w, node,
+                        // sumWeight,
+                        // contractedNodes);
+                        dijkstraLocalSearch.searchGraph(u, w, node, sumWeight, contractedNodes);
+                        if (dijkstraLocalSearch.distTo(w) > sumWeight) {
                             shortcuts.add(new Edge(u, w, sumWeight, true));
                             graph.addEdge(new Edge(u, w, sumWeight, true));
                         }
@@ -111,6 +131,7 @@ public class ContractionHierachiesPreprocessing {
 
         }
     }
+    
 
     public static void main(String[] args) {
         try {
@@ -118,26 +139,22 @@ public class ContractionHierachiesPreprocessing {
                     .parseInput(new FileInputStream("app/src/test/resources/denmark.graph"));
             ContractionHierachiesPreprocessing ch = new ContractionHierachiesPreprocessing(graph);
             System.out.println(ch.shortcuts.size());
-             StringBuilder sb = new StringBuilder();
-             sb.append(graph.V()).append(" ").append(graph.E()).append("\n");
-             for (Integer v : ch.pq) {
-                 sb.append(v).append(" ").append(ch.nodeToRank.get(v)).append("\n");
-             }
-             for (Edge e : graph.edges()) {
-                 if (e.isShortcut())  {
-                     sb.append(e).append(" 1").append("\n");
-                 } else {
-                     sb.append(e).append(" -1").append("\n");
-                 }
-
-             }
-             File output = new File("denmark_processed.graph");
-             FileWriter fw = new FileWriter(output);
-             fw.write(sb.toString());
-             fw.close();
-            System.out.println(ch.getShortcuts().size());
-            System.out.println(ch.getShortcuts());
-
+            StringBuilder sb = new StringBuilder();
+            sb.append(ch.graph.V()).append(" ").append(ch.graph.E()).append("\n");
+            for (Integer v : ch.nodeToRank.keySet()) {
+                sb.append(v).append(" ").append(ch.nodeToRank.get(v)).append("\n");
+            }
+            for (Edge e : ch.graph.edges()) {
+                if (e.isShortcut()) {
+                    sb.append(e).append(" 1").append("\n");
+                } else {
+                    sb.append(e).append(" -1").append("\n");
+                }
+            }
+            File output = new File("denmark_processed.graph");
+            FileWriter fw = new FileWriter(output);
+            fw.write(sb.toString());
+            fw.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
