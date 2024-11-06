@@ -49,6 +49,24 @@ public class Edge implements Comparable<Edge> {
 		return Double.compare(this.weight, that.weight);
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		Edge edge = (Edge) o;
+		return v == edge.v && w == edge.w && Double.compare(weight, edge.weight) == 0 && isShortcut() == edge.isShortcut();
+	}
+
+	@Override
+	public int hashCode() {
+		int result = v;
+		result = 31 * result + w;
+		result = 31 * result + Double.hashCode(weight);
+		result = 31 * result + Boolean.hashCode(isShortcut());
+		return result;
+	}
+
 	public String toString() {
 		return String.format("%d-%d %.5f", this.v, this.w, this.weight);
 	}

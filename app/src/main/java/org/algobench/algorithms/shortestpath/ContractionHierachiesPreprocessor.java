@@ -11,15 +11,21 @@ public class ContractionHierachiesPreprocessor {
 
 	private final EdgeWeightedGraph graph;
 	private DijkstraLocalSearch dijkstraLocalSearch;
+	private DijkstraLocalSearch dijkstraInit;
 	private final Set<Edge> shortcuts;
 	private PriorityQueue<Integer> contractionQueue;
 	private final int[] deletedNeighbors;
+	private Set<Edge> visitedInit;
+	int shortcutsAdded;
 
 	public ContractionHierachiesPreprocessor(EdgeWeightedGraph graph) {
 		this.graph = graph;
 		this.shortcuts = new HashSet<>();
 		this.deletedNeighbors = new int[graph.V()];
 		this.dijkstraLocalSearch = new DijkstraLocalSearch(graph);
+		this.visitedInit = new HashSet<>();
+		this.dijkstraInit = new DijkstraLocalSearch(graph);
+		shortcutsAdded = 0;
 	}
 
 	public static void main(String[] args) {
@@ -56,10 +62,10 @@ public class ContractionHierachiesPreprocessor {
 	}
 
 	public int rank(int node) {
-		return edgeDifference(node) + deletedNeighbors[node] + contract(node);
+		return contract(node, true) + deletedNeighbors[node];
 	}
 
-	public int edgeDifference(int node) {
+	public int edgeDiff(int node) {
 		int deg = graph.degree(node);
 		return (deg * deg) - deg;
 	}
@@ -79,9 +85,10 @@ public class ContractionHierachiesPreprocessor {
 			int rankCurrent = rank(v);
 			if (contractionQueue.peek() != null && rank(contractionQueue.peek()) < rankCurrent) {
 				contractionQueue.add(v);
+				int i = 0;
 			} else {
 				graph.setRank(v, rankCurrent);
-				contract(v);
+				shortcutsAdded += contract(v, false);
 				for (Edge edge : graph.adj(v)) {
 					deletedNeighbors[edge.other(v)]++;
 				}
@@ -101,7 +108,7 @@ public class ContractionHierachiesPreprocessor {
 		return before;
 	}
 
-	public int contract(int node) {
+	public int contract(int node, boolean sim) {
 		int shortcutsAdded = 0;
 		List<Edge> adjacentEdges = new ArrayList<Edge>();
 		for (Edge e : graph.adj(node)) {
@@ -114,15 +121,17 @@ public class ContractionHierachiesPreprocessor {
 					int w = k.other(node);
 					double sumWeight = j.weight() + k.weight();
 
-					dijkstraLocalSearch.searchGraph(u, node, sumWeight);
 					if (dijkstraLocalSearch.distTo(w) > sumWeight) {
 						shortcutsAdded++;
-						shortcuts.add(new Edge(u, w, sumWeight, true));
-						graph.addEdge(new Edge(u, w, sumWeight, true));
+						if (!sim) {
+							shortcuts.add(new Edge(u, w, sumWeight, true));
+							graph.addEdge(new Edge(u, w, sumWeight, true));
+						}
 					}
 				}
 			}
 		}
 		return shortcutsAdded;
 	}
+
 }

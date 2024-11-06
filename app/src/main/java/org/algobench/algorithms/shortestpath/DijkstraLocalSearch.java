@@ -16,8 +16,9 @@ public class DijkstraLocalSearch {
         initDijkstra();
     }
 
-    public int searchGraph(int source, int excluded, double sumWeight) {
+    public int searchGraph(int source, int excluded, double sumWeight, boolean sim) {
         int costOfSearch = 0;
+        double before = this.distTo[source];
         this.distTo[source] = 0.0;
 
         if (pq.contains(source)) {
@@ -38,12 +39,16 @@ public class DijkstraLocalSearch {
                 costOfSearch++;
                 Edge e = adjecentVerticyIterator.next();
                 int other = e.other(v);
+
                 if (graph.getRank(other) > graph.getRank(source) && e.other(v) != excluded) {
+                    this.relax(e, v);
+                } else if (sim && e.other(v) != excluded) {
                     this.relax(e, v);
                 }
             }
             oneHopStop--;
         }
+        this.distTo[source] = before;
         return costOfSearch;
     }
 
