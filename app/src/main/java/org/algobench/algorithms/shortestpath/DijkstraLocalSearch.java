@@ -2,28 +2,22 @@ package org.algobench.algorithms.shortestpath;
 
 
 import edu.princeton.cs.algs4.IndexMinPQ;
-import edu.princeton.cs.algs4.Stack;
 
 import java.util.Iterator;
-import java.util.Map;
 
 public class DijkstraLocalSearch {
     private double[] distTo;
     private Edge[] edgeTo;
     private IndexMinPQ<Double> pq;
-    private static long countRelaxed;
     private EdgeWeightedGraph graph;
-
-    public long getRelaxed() {
-        return countRelaxed;
-    }
 
     public DijkstraLocalSearch(EdgeWeightedGraph graph) {
         this.graph = graph;
         initDijkstra();
     }
 
-    public void searchGraph (Map<Integer, Integer> ranks, int source, int excluded, double sumWeight) {
+    public int searchGraph(int source, int excluded, double sumWeight) {
+        int costOfSearch = 0;
         this.distTo[source] = 0.0;
 
         if (pq.contains(source)) {
@@ -41,14 +35,16 @@ public class DijkstraLocalSearch {
             Iterator<Edge> adjecentVerticyIterator = graph.adj(v).iterator();
 
             while (adjecentVerticyIterator.hasNext()) {
-                Edge e = (Edge) adjecentVerticyIterator.next();
-                if (ranks.get(e.other(v)) > ranks.get(source) && e.other(v) != excluded) {
-                    countRelaxed++;
+                costOfSearch++;
+                Edge e = adjecentVerticyIterator.next();
+                int other = e.other(v);
+                if (graph.getRank(other) > graph.getRank(source) && e.other(v) != excluded) {
                     this.relax(e, v);
                 }
             }
             oneHopStop--;
         }
+        return costOfSearch;
     }
 
     private void initDijkstra() {
@@ -74,7 +70,6 @@ public class DijkstraLocalSearch {
 
     private void relax(Edge e, int v) {
         int w = e.other(v);
-        countRelaxed++;
         if (this.distTo[w] > this.distTo[v] + e.weight()) {
             this.distTo[w] = this.distTo[v] + e.weight();
             this.edgeTo[w] = e;
@@ -84,34 +79,11 @@ public class DijkstraLocalSearch {
                 this.pq.insert(w, this.distTo[w]);
             }
         }
-
     }
 
     public double distTo(int v) {
         this.validateVertex(v);
         return this.distTo[v];
-    }
-
-    public boolean hasPathTo(int v) {
-        this.validateVertex(v);
-        return this.distTo[v] < Double.POSITIVE_INFINITY;
-    }
-
-    public Iterable<Edge> pathTo(int v) {
-        this.validateVertex(v);
-        if (!this.hasPathTo(v)) {
-            return null;
-        } else {
-            Stack<Edge> path = new Stack();
-            int x = v;
-
-            for (Edge e = this.edgeTo[v]; e != null; e = this.edgeTo[x]) {
-                path.push(e);
-                x = e.other(x);
-            }
-
-            return path;
-        }
     }
 
     private void validateVertex(int v) {

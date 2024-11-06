@@ -1,8 +1,6 @@
 package org.algobench.benchmarking;
 
-import org.algobench.algorithms.shortestpath.DijkstraEarlyStopping;
-import org.algobench.algorithms.shortestpath.ParseGraph;
-import org.algobench.algorithms.shortestpath.DijkstraEarlyStoppingBidirectional;
+import org.algobench.algorithms.shortestpath.*;
 import org.graalvm.collections.Pair;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
@@ -11,9 +9,9 @@ import java.io.*;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 0)
-@Measurement(iterations = 1)
-@Fork(value = 0)
+@Warmup(iterations = 5)
+@Measurement(iterations = 5)
+@Fork(value = 1)
 public class PathBenchmarks {
 
 	// report running time and average count of relaxed out
@@ -48,11 +46,26 @@ public class PathBenchmarks {
 		}
 	}
 
+	@Benchmark
+	@BenchmarkMode(Mode.AverageTime)
+	@OutputTimeUnit(TimeUnit.MILLISECONDS)
+	public void benchmarkDijkstraCH(Blackhole bh, ExecutionState state) {
+		state.benchName = "DijkstraCH";
+		for (int i = 0; i < state.pairs.length; i++) {
+			int s = (int) state.pairs[i].getLeft();
+			int t = (int) state.pairs[i].getRight();
+			DijkstraCH path = new DijkstraCH(state.graphAugmented, s, t);
+			bh.consume(path.distTo(t));
+			state.sumRelaxed += path.getCountRelaxedEdges();
+		}
+	}
+
 
 	@State(Scope.Benchmark)
 	public static class ExecutionState {
 		Random random = new Random(12345);
 		EdgeWeightedGraph graph;
+		EdgeWeightedGraph graphAugmented;
 		Pair[] pairs;
 		long sumRelaxed;
 		String benchName;
@@ -69,6 +82,15 @@ public class PathBenchmarks {
 					throw new FileNotFoundException("Resource " + resourceName + " not found");
 				}
 				graph = ParseGraph.parseInput(inputStream);
+			}
+
+			String resourceNameAug = "denmark_processed.graph";
+			ClassLoader classLoaderAug = ParseGraph.class.getClassLoader();
+			try (InputStream inputStream = classLoaderAug.getResourceAsStream(resourceNameAug)) {
+				if (inputStream == null) {
+					throw new FileNotFoundException("Resource " + resourceNameAug + " not found");
+				}
+				graphAugmented = ParseGraphContracted.parseContracted(inputStream);
 			}
 			pairs = new Pair[n];
 			for (int i = 0; i < n; i++) {
