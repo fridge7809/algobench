@@ -5,6 +5,7 @@ import edu.princeton.cs.algs4.IndexMinPQ;
 import edu.princeton.cs.algs4.Stack;
 
 import java.util.Iterator;
+import java.util.Map;
 
 public class DijkstraLocalSearch {
     private double[] distTo;
@@ -22,12 +23,17 @@ public class DijkstraLocalSearch {
         initDijkstra();
     }
 
-    public void searchGraph (int source, int target, int excluded, double sumWeight, boolean[] contracted) {
+    public void searchGraph (Map<Integer, Integer> ranks, int source, int excluded, double sumWeight) {
         this.distTo[source] = 0.0;
-        this.pq = new IndexMinPQ(graph.V());
-        this.pq.insert(source, this.distTo[source]);
-        boolean oneHopStop = true;
-        while (!this.pq.isEmpty() && oneHopStop) {
+
+        if (pq.contains(source)) {
+            this.pq.changeKey(source, this.distTo[source]);
+        } else {
+            this.pq.insert(source, this.distTo[source]);
+        }
+
+        int oneHopStop = 1;
+        while (!this.pq.isEmpty() && oneHopStop != 0) {
             int v = this.pq.delMin();
             if (distTo(v) > sumWeight) {
                 break;
@@ -36,12 +42,12 @@ public class DijkstraLocalSearch {
 
             while (adjecentVerticyIterator.hasNext()) {
                 Edge e = (Edge) adjecentVerticyIterator.next();
-                if (e.other(v) != excluded) {
+                if (ranks.get(e.other(v)) > ranks.get(source) && e.other(v) != excluded) {
                     countRelaxed++;
                     this.relax(e, v);
                 }
             }
-            oneHopStop = false;
+            oneHopStop--;
         }
     }
 
@@ -49,7 +55,7 @@ public class DijkstraLocalSearch {
         Iterator<Edge> edgeIterator = graph.edges().iterator();
 
         while (edgeIterator.hasNext()) {
-            Edge e = (Edge) edgeIterator.next();
+            Edge e = edgeIterator.next();
             if (e.weight() < 0.0) {
                 throw new IllegalArgumentException("edge " + e + " has negative weight");
             }
@@ -57,12 +63,13 @@ public class DijkstraLocalSearch {
 
         this.distTo = new double[graph.V()];
         this.edgeTo = new Edge[graph.V()];
-        //this.validateVertex(source);
 
         int v;
         for (v = 0; v < graph.V(); ++v) {
             this.distTo[v] = Double.POSITIVE_INFINITY;
         }
+
+        this.pq = new IndexMinPQ(graph.V());
     }
 
     private void relax(Edge e, int v) {
