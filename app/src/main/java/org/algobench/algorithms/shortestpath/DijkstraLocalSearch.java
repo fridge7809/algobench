@@ -31,30 +31,30 @@ public class DijkstraLocalSearch {
             this.pq.insert(source, this.distTo[source]);
         }
 
-        boolean oneHopStop = true;
-        while (!this.pq.isEmpty() && oneHopStop) {
+        int oneHopStop = 0;
+        while (!this.pq.isEmpty() && oneHopStop < 50) {
             int v = this.pq.delMin();
             if (distTo(v) > sumWeight) {
                 break;
             }
-            Iterator<Edge> adjecentVerticyIterator = graph.adj(v).iterator();
 
+            Iterator<Edge> adjecentVerticyIterator = graph.adj(v).iterator();
             while (adjecentVerticyIterator.hasNext()) {
                 Edge e = (Edge) adjecentVerticyIterator.next();
                 if (isSim) {
-                    //System.out.println("Simulating relax: " + e +" V:" + v);
+                    // System.out.println("Simulating relax: " + e +" V:" + v);
                     this.relax(e, v); // simulate relaxation
                 } else if (ranks.get(e.other(v)) > ranks.get(source) && e.other(v) != excluded) {
-                    //countRelaxed++;
+                    // countRelaxed++;
                     this.relax(e, v);
                 }
             }
-            oneHopStop = false;
+            oneHopStop++;
         }
-        //System.out.println(countRelaxed + " countrelaxed");
+        // System.out.println(countRelaxed + " countrelaxed");
         // if(isSim) {
-        //     resetDistToValues(visitedV);
-        //     this.pq = new IndexMinPQ<>(graph.V());
+        // resetDistToValues(visitedV);
+        // this.pq = new IndexMinPQ<>(graph.V());
         // }
     }
 
@@ -62,13 +62,12 @@ public class DijkstraLocalSearch {
         for (int v : visitedV) {
             this.distTo[v] = Double.POSITIVE_INFINITY;
         }
-        //this.pq = new IndexMinPQ<>(graph.V());
 
-        for(int i : pq){
-            this.pq.delete(i);
+        while (!pq.isEmpty()) {
+            pq.delMin();
         }
-        visitedV.removeAll(visitedV);
-        //System.out.println("VisitedV should be empty: " + visitedV);
+
+        visitedV = new HashSet<>();
     }
 
     private void initDijkstra() {
@@ -97,7 +96,8 @@ public class DijkstraLocalSearch {
         visitedV.add(w);
         if (this.distTo[w] > this.distTo[v] + e.weight()) {
             this.distTo[w] = this.distTo[v] + e.weight();
-            this.edgeTo[w] = e; // OBS: edgeTo is NOT reset when using simulateDijkstra. Could cause problems, but is currently only used for pathTo func
+            this.edgeTo[w] = e; // OBS: edgeTo is NOT reset when using simulateDijkstra. Could cause problems,
+                                // but is currently only used for pathTo func
             if (this.pq.contains(w)) {
                 this.pq.decreaseKey(w, this.distTo[w]);
             } else {

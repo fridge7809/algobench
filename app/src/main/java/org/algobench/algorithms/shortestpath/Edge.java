@@ -4,6 +4,8 @@ package org.algobench.algorithms.shortestpath;//
 //
 
 
+import java.util.Objects;
+
 import edu.princeton.cs.algs4.StdOut;
 
 public class Edge implements Comparable<Edge> {
@@ -59,7 +61,7 @@ public class Edge implements Comparable<Edge> {
 		if (o == null || getClass() != o.getClass()) return false;
 
 		Edge edge = (Edge) o;
-		return v == edge.v && w == edge.w && Double.compare(weight, edge.weight) == 0 && isShortcut() == edge.isShortcut();
+		return v == edge.v && w == edge.w || v == edge.w && w == edge.v;
 	}
 
 	public static void main(String[] args) {

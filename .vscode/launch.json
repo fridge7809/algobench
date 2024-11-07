@@ -1,0 +1,98 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "ChiSquared",
+            "request": "launch",
+            "mainClass": "org.algobench.algorithms.hyperloglog.ChiSquared",
+            "projectName": "app"
+        },
+        {
+            "type": "java",
+            "name": "ErrorEstimation",
+            "request": "launch",
+            "mainClass": "org.algobench.algorithms.hyperloglog.ErrorEstimation",
+            "projectName": "app"
+        },
+        {
+            "type": "java",
+            "name": "HashDistribution",
+            "request": "launch",
+            "mainClass": "org.algobench.algorithms.hyperloglog.HashDistribution",
+            "projectName": "app"
+        },
+        {
+            "type": "java",
+            "name": "HashProbability",
+            "request": "launch",
+            "mainClass": "org.algobench.algorithms.hyperloglog.HashProbability",
+            "projectName": "app"
+        },
+        {
+            "type": "java",
+            "name": "HyperLogLog",
+            "request": "launch",
+            "mainClass": "org.algobench.algorithms.hyperloglog.HyperLogLog",
+            "projectName": "app"
+        },
+        {
+            "type": "java",
+            "name": "ContractionHierachiesPreprocessor",
+            "request": "launch",
+            "mainClass": "org.algobench.algorithms.shortestpath.ContractionHierachiesPreprocessor",
+            "projectName": "app"
+        },
+        {
+            "type": "java",
+            "name": "Edge",
+            "request": "launch",
+            "mainClass": "org.algobench.algorithms.shortestpath.Edge",
+            "projectName": "app"
+        },
+        {
+            "type": "java",
+            "name": "ParseGraph",
+            "request": "launch",
+            "mainClass": "org.algobench.algorithms.shortestpath.ParseGraph",
+            "projectName": "app"
+        },
+        {
+            "type": "java",
+            "name": "ParseGraphContracted",
+            "request": "launch",
+            "mainClass": "org.algobench.algorithms.shortestpath.ParseGraphContracted",
+            "projectName": "app"
+        },
+        {
+            "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "org.algobench.app.Main",
+            "projectName": "app"
+        },
+        {
+            "type": "java",
+            "name": "FoursumBenchmarks",
+            "request": "launch",
+            "mainClass": "org.algobench.benchmarking.FoursumBenchmarks",
+            "projectName": "app"
+        },
+        {
+            "type": "java",
+            "name": "ThreesumBenchmarks",
+            "request": "launch",
+            "mainClass": "org.algobench.benchmarking.ThreesumBenchmarks",
+            "projectName": "app"
+        }
+    ]
+}
