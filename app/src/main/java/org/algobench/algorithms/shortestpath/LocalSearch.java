@@ -2,73 +2,61 @@ package org.algobench.algorithms.shortestpath;
 
 import edu.princeton.cs.algs4.IndexMinPQ;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
-public class DijkstraLocalSearch {
+public class LocalSearch {
     private double[] distTo;
     private Edge[] edgeTo;
     private IndexMinPQ<Double> pq;
-    private EdgeWeightedGraph graph;
+    private final EdgeWeightedGraph graph;
     private int[] epoch;
     private int currentEpoch;
 
-    public DijkstraLocalSearch(EdgeWeightedGraph graph) {
+    public LocalSearch(EdgeWeightedGraph graph) {
         this.graph = graph;
         this.epoch = new int[graph.V()];
-        initDijkstra();
+        init();
     }
 
-    public void searchGraph(Map<Integer, Integer> ranks, int source, int excluded, double sumWeight, Boolean isSim) {
+    public boolean hasWitnessPath(int[] ranks, int source, int target, int excluded, double sumWeight) {
         this.distTo[source] = 0.0;
         currentEpoch++;
 
-        // use this when isSim = true, to reset relaxed edges/vertices in the distto
         if (pq.contains(source)) {
             this.pq.changeKey(source, this.distTo[source]);
         } else {
             this.pq.insert(source, this.distTo[source]);
         }
 
-        int oneHopStop = 0;
-        while (!this.pq.isEmpty() && oneHopStop < 50) {
+        int maxSettledNodes = 50;
+        while (!this.pq.isEmpty() && maxSettledNodes > 0) {
             int v = this.pq.delMin();
-            int i = 0;
+
             if (distTo(v) > sumWeight) {
                 break;
             }
 
-            Iterator<Edge> adjecentVerticyIterator = graph.adj(v).iterator();
-            while (adjecentVerticyIterator.hasNext()) {
-                Edge e = adjecentVerticyIterator.next();
-                if (isSim) {
-                    this.relax(e, v);
-                } else if (ranks.get(e.other(v)) > ranks.get(source) && e.other(v) != excluded) {
-                    // countRelaxed++;
-                    this.relax(e, v);
-                }
-            }
-            oneHopStop++;
+	        for (Edge e : graph.adj(v)) {
+		        if (ranks[e.other(v)] > ranks[source] && e.other(v) != excluded) {
+			        this.relax(e, v);
+		        }
+	        }
+            maxSettledNodes--;
         }
+
+        return distTo[target] > sumWeight;
     }
 
-    private void initDijkstra() {
-        Iterator<Edge> edgeIterator = graph.edges().iterator();
+    private void init() {
 
-        while (edgeIterator.hasNext()) {
-            Edge e = edgeIterator.next();
-            if (e.weight() < 0.0) {
-                throw new IllegalArgumentException("edge " + e + " has negative weight");
-            }
-        }
+	    for (Edge e : graph.edges()) {
+		    if (e.weight() < 0.0) {
+			    throw new IllegalArgumentException("edge " + e + " has negative weight");
+		    }
+	    }
 
         this.distTo = new double[graph.V()];
         this.edgeTo = new Edge[graph.V()];
 
-        int v;
-        for (v = 0; v < graph.V(); ++v) {
+        for (int v = 0; v < graph.V(); ++v) {
             this.distTo[v] = Double.POSITIVE_INFINITY;
         }
 
@@ -83,8 +71,7 @@ public class DijkstraLocalSearch {
         }
         if (this.distTo[w] > this.distTo[v] + e.weight()) {
             this.distTo[w] = this.distTo[v] + e.weight();
-            this.edgeTo[w] = e; // OBS: edgeTo is NOT reset when using simulateDijkstra. Could cause problems,
-                                // but is currently only used for pathTo func
+            this.edgeTo[w] = e;
             if (this.pq.contains(w)) {
                 this.pq.decreaseKey(w, this.distTo[w]);
             } else {
@@ -93,7 +80,7 @@ public class DijkstraLocalSearch {
         }
     }
 
-    public void clearPQ() {
+    public void emptyQueue() {
         while (!this.pq.isEmpty()) {
             pq.delMin();
         }

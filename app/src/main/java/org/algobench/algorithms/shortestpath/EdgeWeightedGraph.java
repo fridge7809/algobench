@@ -7,7 +7,9 @@ package org.algobench.algorithms.shortestpath;//
 import edu.princeton.cs.algs4.Bag;
 import edu.princeton.cs.algs4.StdRandom;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class EdgeWeightedGraph {
 	private static final String NEWLINE = System.getProperty("line.separator");
@@ -120,8 +122,10 @@ public class EdgeWeightedGraph {
 		return list;
 	}
 
-	public void setRank(int v, int rank) {
-		ranks[v] = rank;
+	public List<Edge> getAdjacentEdges(int v) {
+		List<Edge> list = new ArrayList<>();
+		this.adj(v).forEach(list::add);
+		return list;
 	}
 
 	public int getRank(int v) {
