@@ -3,6 +3,7 @@ package org.algobench.benchmarking;
 import org.algobench.algorithms.shortestpath.DijkstraEarlyStopping;
 import org.algobench.algorithms.shortestpath.ParseGraph;
 import org.algobench.algorithms.shortestpath.DijkstraEarlyStoppingBidirectional;
+import org.algobench.algorithms.shortestpath.EdgeWeightedGraph;
 import org.graalvm.collections.Pair;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;

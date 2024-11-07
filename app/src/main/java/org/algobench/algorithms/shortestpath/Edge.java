@@ -53,6 +53,15 @@ public class Edge implements Comparable<Edge> {
 		return String.format("%d-%d %.5f", this.v, this.w, this.weight);
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		Edge edge = (Edge) o;
+		return v == edge.v && w == edge.w && Double.compare(weight, edge.weight) == 0 && isShortcut() == edge.isShortcut();
+	}
+
 	public static void main(String[] args) {
 		Edge e = new Edge(12, 34, 5.67, false);
 		StdOut.println(e);
