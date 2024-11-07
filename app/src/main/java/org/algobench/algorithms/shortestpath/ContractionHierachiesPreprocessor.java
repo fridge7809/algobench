@@ -44,11 +44,9 @@ public class ContractionHierachiesPreprocessor {
     }
 
     public int calculateRank(int node) {
-        int contractedNodes = simulateContract(node);
-        int edgeDifference = edgeDifference(node, contractedNodes);
-        // System.out.println("Node: " + node + " | contractions/shortcuts: " + contractedNodes + " |  edge difference: "
-        //         + edgeDifference + " | degree: " + graph.degree(node));
-        return edgeDifference - contractedNodes; // + neighbours??
+        int amountOfShortcuts = simulateContract(node);
+        int edgeDifference = edgeDifference(node, amountOfShortcuts);
+        return edgeDifference + deletedNeighbors[node];
     }
 
     public int edgeDifference(int node, int shortcuts) {
@@ -61,13 +59,16 @@ public class ContractionHierachiesPreprocessor {
         // prioritize nodes in the queue by their ranks...
         pq = new PriorityQueue<>((a, b) -> Integer.compare(ranks.get(a), ranks.get(b)));
         for (int v = 0; v < graph.V(); v++) {
-            ranks.put(v, calculateRank(v)); // ... calculate rank before adding to PQ
+            int rank = calculateRank(v);
+            //System.out.println("Node: " + v + " with rank: " + rank);
+            ranks.put(v, rank); // ... calculate rank before adding to PQ
             pq.add(v);
             if (v % 2000 == 0) {
                 long after = System.nanoTime();
                 System.out.println(v + " in time in seconds: " + (after - before));
             }
         }
+
         System.out.println("Done simulating");
         int scCount = 0;
         // outcommenting the actual ranking/contracting for now
@@ -117,7 +118,7 @@ public class ContractionHierachiesPreprocessor {
     }
 
     public int simulateContract(int node) {
-        //System.out.println("Simulating contract of V: " + node);
+        // System.out.println("Simulating contract of V: " + node);
         List<Edge> adjacentEdges = new ArrayList<Edge>();
         for (Edge e : graph.adj(node)) {
             adjacentEdges.add(e);
@@ -131,25 +132,38 @@ public class ContractionHierachiesPreprocessor {
                     int w = k.other(node);
                     double sumWeight = j.weight() + k.weight();
 
-                    simulateDijkstra.searchGraph(ranks, u, node, sumWeight, true);
+                    // simulateDijkstra.searchGraph(ranks, u, node, sumWeight, true);
 
-                    if (simulateDijkstra.distTo(w) > sumWeight) {
+                    boolean witnessPath = hasDirectEdgeToAdj(u, w, sumWeight);
+
+                    if (!witnessPath) {
                         if (!shortcutExists(u, w, simulatedShortcuts)) {
-                            //System.out.println("Would have made shortcut: " + new Edge(u, w, sumWeight, true));
+                            // System.out.println("Would have made shortcut: " + new Edge(u, w, sumWeight,
+                            //         true));
                             Set<Integer> setOfAssociatedShortcuts = simulatedShortcuts.get(u);
-                            if(setOfAssociatedShortcuts == null) setOfAssociatedShortcuts = new HashSet<>();
+                            if (setOfAssociatedShortcuts == null)
+                                setOfAssociatedShortcuts = new HashSet<>();
                             setOfAssociatedShortcuts.add(w);
                             simulatedShortcuts.put(u, setOfAssociatedShortcuts);
                             countContractions++;
                         }
                     }
 
-                    simulateDijkstra.resetDistToValues();
+                    // simulateDijkstra.resetDistToValues();
                 }
             }
         }
-        //System.out.println("Simulating contract of V: " + node + " finished with " + countContractions + " shortcuts");
+        // System.out.println("Simulating contract of V: " + node + " finished with " +
+        // countContractions + " shortcuts");
         return countContractions;
+    }
+
+    private Boolean hasDirectEdgeToAdj(int u, int w, double sumWeight) {
+        for (Edge e : graph.adj(u)) {
+            if (e.other(u) == w && e.weight() < sumWeight)
+                return true;
+        }
+        return false;
     }
 
     private boolean shortcutExists(int u, int w, HashMap<Integer, Set<Integer>> simulatedShortcuts) {

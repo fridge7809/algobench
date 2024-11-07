@@ -68,7 +68,11 @@ public class DijkstraLocalSearch {
         for (int v : visitedV) {
             this.distTo[v] = Double.POSITIVE_INFINITY;
         }
-        this.pq = new IndexMinPQ<>(graph.V());
+        //this.pq = new IndexMinPQ<>(graph.V());
+
+        for(int i : pq){
+            this.pq.delete(i);
+        }
         visitedV.removeAll(visitedV);
         //System.out.println("VisitedV should be empty: " + visitedV);
     }
