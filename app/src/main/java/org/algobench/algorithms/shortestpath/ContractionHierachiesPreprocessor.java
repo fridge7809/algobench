@@ -140,7 +140,8 @@ public class ContractionHierachiesPreprocessor {
                                 graph.addEdge(new Edge(u, w, sumWeight, true));
                             }
                         }
-                        dijkstraLocalSearch.resetDistToValues();
+
+                        dijkstraLocalSearch.clearPQ();
                     }
                     // for keeping track of ignored edges
                     ignoringEdgesBetweenTheseAndNode.add(u);
@@ -216,22 +217,22 @@ public class ContractionHierachiesPreprocessor {
                     .parseInput(new FileInputStream("app/src/test/resources/denmark.graph"));
             ContractionHierachiesPreprocessor ch = new ContractionHierachiesPreprocessor(graph);
             System.out.println(ch.shortcuts.size());
-            // StringBuilder sb = new StringBuilder();
-            // sb.append(ch.graph.V()).append(" ").append(ch.graph.E()).append("\n");
-            // for (Integer v : ch.ranks.keySet()) {
-            // sb.append(v).append(" ").append(ch.ranks.get(v)).append("\n");
-            // }
-            // for (Edge e : ch.graph.edges()) {
-            // if (e.isShortcut()) {
-            // sb.append(e).append(" 1").append("\n");
-            // } else {
-            // sb.append(e).append(" -1").append("\n");
-            // }
-            // }
-            // File output = new File("denmark_processed.graph");
-            // FileWriter fw = new FileWriter(output);
-            // fw.write(sb.toString());
-            // fw.close();
+             StringBuilder sb = new StringBuilder();
+             sb.append(ch.graph.V()).append(" ").append(ch.graph.E()).append("\n");
+             for (Integer v : ch.ranks.keySet()) {
+             sb.append(v).append(" ").append(ch.ranks.get(v)).append("\n");
+             }
+             for (Edge e : ch.graph.edges()) {
+             if (e.isShortcut()) {
+             sb.append(e).append(" 1").append("\n");
+             } else {
+             sb.append(e).append(" -1").append("\n");
+             }
+             }
+             File output = new File("denmark_processed.graph");
+             FileWriter fw = new FileWriter(output);
+             fw.write(sb.toString());
+             fw.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

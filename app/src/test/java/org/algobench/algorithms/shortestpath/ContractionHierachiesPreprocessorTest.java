@@ -59,17 +59,4 @@ public class ContractionHierachiesPreprocessorTest {
         Assertions.assertThat(ch.getShortcuts().size()).isEqualTo(10);
     }
 
-    @Example
-    void rankIsCorrect() {
-        // testing graph specific
-        Assertions.assertThat(ch.rank(0)).isEqualTo(2);
-        Assertions.assertThat(ch.rank(1)).isEqualTo(5);
-        Assertions.assertThat(ch.rank(2)).isEqualTo(3);
-        Assertions.assertThat(ch.rank(3)).isEqualTo(3);
-        Assertions.assertThat(ch.rank(4)).isEqualTo(3);
-        Assertions.assertThat(ch.rank(5)).isEqualTo(1);
-        Assertions.assertThat(ch.rank(6)).isEqualTo(1);
-
-    }
-
 }

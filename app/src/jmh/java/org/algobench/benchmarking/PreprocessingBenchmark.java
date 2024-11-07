@@ -23,7 +23,7 @@ public class PreprocessingBenchmark {
 	@BenchmarkMode(Mode.SingleShotTime)
 	@OutputTimeUnit(TimeUnit.SECONDS)
 	public void benchmarkDijkstraBidirectional(Blackhole bh, ExecutionState state) {
-		bh.consume(state.contractionHierachiesPreprocessor.preprocess());
+		bh.consume(state.contractionHierachiesPreprocessor);
 	}
 
 

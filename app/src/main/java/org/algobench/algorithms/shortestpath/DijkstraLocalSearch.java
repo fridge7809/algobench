@@ -12,19 +12,20 @@ public class DijkstraLocalSearch {
     private Edge[] edgeTo;
     private IndexMinPQ<Double> pq;
     private EdgeWeightedGraph graph;
-    Set<Integer> visitedV;
+    private int[] epoch;
+    private int currentEpoch;
 
     public DijkstraLocalSearch(EdgeWeightedGraph graph) {
         this.graph = graph;
+        this.epoch = new int[graph.V()];
         initDijkstra();
     }
 
     public void searchGraph(Map<Integer, Integer> ranks, int source, int excluded, double sumWeight, Boolean isSim) {
         this.distTo[source] = 0.0;
+        currentEpoch++;
 
         // use this when isSim = true, to reset relaxed edges/vertices in the distto
-        visitedV = new HashSet<>();
-
         if (pq.contains(source)) {
             this.pq.changeKey(source, this.distTo[source]);
         } else {
@@ -34,16 +35,16 @@ public class DijkstraLocalSearch {
         int oneHopStop = 0;
         while (!this.pq.isEmpty() && oneHopStop < 50) {
             int v = this.pq.delMin();
+            int i = 0;
             if (distTo(v) > sumWeight) {
                 break;
             }
 
             Iterator<Edge> adjecentVerticyIterator = graph.adj(v).iterator();
             while (adjecentVerticyIterator.hasNext()) {
-                Edge e = (Edge) adjecentVerticyIterator.next();
+                Edge e = adjecentVerticyIterator.next();
                 if (isSim) {
-                    // System.out.println("Simulating relax: " + e +" V:" + v);
-                    this.relax(e, v); // simulate relaxation
+                    this.relax(e, v);
                 } else if (ranks.get(e.other(v)) > ranks.get(source) && e.other(v) != excluded) {
                     // countRelaxed++;
                     this.relax(e, v);
@@ -51,23 +52,6 @@ public class DijkstraLocalSearch {
             }
             oneHopStop++;
         }
-        // System.out.println(countRelaxed + " countrelaxed");
-        // if(isSim) {
-        // resetDistToValues(visitedV);
-        // this.pq = new IndexMinPQ<>(graph.V());
-        // }
-    }
-
-    public void resetDistToValues() {
-        for (int v : visitedV) {
-            this.distTo[v] = Double.POSITIVE_INFINITY;
-        }
-
-        while (!pq.isEmpty()) {
-            pq.delMin();
-        }
-
-        visitedV = new HashSet<>();
     }
 
     private void initDijkstra() {
@@ -93,7 +77,10 @@ public class DijkstraLocalSearch {
 
     private void relax(Edge e, int v) {
         int w = e.other(v);
-        visitedV.add(w);
+        if (this.epoch[w] != currentEpoch) {
+            distTo[w] = Double.POSITIVE_INFINITY;
+            epoch[w] = currentEpoch;
+        }
         if (this.distTo[w] > this.distTo[v] + e.weight()) {
             this.distTo[w] = this.distTo[v] + e.weight();
             this.edgeTo[w] = e; // OBS: edgeTo is NOT reset when using simulateDijkstra. Could cause problems,
@@ -103,6 +90,12 @@ public class DijkstraLocalSearch {
             } else {
                 this.pq.insert(w, this.distTo[w]);
             }
+        }
+    }
+
+    public void clearPQ() {
+        while (!this.pq.isEmpty()) {
+            pq.delMin();
         }
     }
 

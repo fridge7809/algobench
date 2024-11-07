@@ -1,4 +1,4 @@
-average relaxed for benchmark DijkstraSingle: 2434817256
-average relaxed for benchmark DijkstraBi: 1779340
-average relaxed for benchmark DijkstraCH: 18
-average relaxed for benchmark DijkstraCH: 19
+time to contract: 8 seconds
+
+2,6 GHz 6-Core Intel Core i7
+16 GB 2400 MHz DDR4
