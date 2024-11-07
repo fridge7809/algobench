@@ -5,18 +5,16 @@ package org.algobench.algorithms.shortestpath;//
 
 
 import edu.princeton.cs.algs4.Bag;
-import edu.princeton.cs.algs4.In;
-import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.StdRandom;
 
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 public class EdgeWeightedGraph {
 	private static final String NEWLINE = System.getProperty("line.separator");
 	private final int V;
 	private int E;
 	private Bag<Edge>[] adj;
+	private int[] ranks;
 
 	public EdgeWeightedGraph(int V) {
 		if (V < 0) {
@@ -29,8 +27,8 @@ public class EdgeWeightedGraph {
 			for(int v = 0; v < V; ++v) {
 				this.adj[v] = new Bag();
 			}
-
 		}
+		ranks = new int[V];
 	}
 
 	public EdgeWeightedGraph(int V, int E) {
@@ -45,8 +43,24 @@ public class EdgeWeightedGraph {
 				Edge e = new Edge(v, w, weight, false);
 				this.addEdge(e);
 			}
-
 		}
+		ranks = new int[V];
+	}
+
+	public EdgeWeightedGraph(int V, int E, int[] ranks) {
+		this(V);
+		if (E < 0) {
+			throw new IllegalArgumentException("Number of edges must be non-negative");
+		} else {
+			for(int i = 0; i < E; ++i) {
+				int v = StdRandom.uniformInt(V);
+				int w = StdRandom.uniformInt(V);
+				double weight = 0.01 * (double)StdRandom.uniformInt(0, 100);
+				Edge e = new Edge(v, w, weight, false);
+				this.addEdge(e);
+			}
+		}
+		this.ranks = ranks;
 	}
 
 	public int V() {
@@ -103,8 +117,15 @@ public class EdgeWeightedGraph {
 				}
 			}
 		}
-
 		return list;
+	}
+
+	public void setRank(int v, int rank) {
+		ranks[v] = rank;
+	}
+
+	public int getRank(int v) {
+		return ranks[v];
 	}
 
 	public String toString() {

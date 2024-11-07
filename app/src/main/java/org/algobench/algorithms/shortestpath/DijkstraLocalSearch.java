@@ -1,7 +1,6 @@
 package org.algobench.algorithms.shortestpath;
 
 import edu.princeton.cs.algs4.IndexMinPQ;
-import edu.princeton.cs.algs4.Stack;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -12,13 +11,8 @@ public class DijkstraLocalSearch {
     private double[] distTo;
     private Edge[] edgeTo;
     private IndexMinPQ<Double> pq;
-    private static long countRelaxed;
     private EdgeWeightedGraph graph;
     Set<Integer> visitedV;
-
-    public long getRelaxed() {
-        return countRelaxed;
-    }
 
     public DijkstraLocalSearch(EdgeWeightedGraph graph) {
         this.graph = graph;
@@ -101,7 +95,6 @@ public class DijkstraLocalSearch {
     private void relax(Edge e, int v) {
         int w = e.other(v);
         visitedV.add(w);
-        countRelaxed++;
         if (this.distTo[w] > this.distTo[v] + e.weight()) {
             this.distTo[w] = this.distTo[v] + e.weight();
             this.edgeTo[w] = e; // OBS: edgeTo is NOT reset when using simulateDijkstra. Could cause problems, but is currently only used for pathTo func
@@ -111,34 +104,11 @@ public class DijkstraLocalSearch {
                 this.pq.insert(w, this.distTo[w]);
             }
         }
-
     }
 
     public double distTo(int v) {
         this.validateVertex(v);
         return this.distTo[v];
-    }
-
-    public boolean hasPathTo(int v) {
-        this.validateVertex(v);
-        return this.distTo[v] < Double.POSITIVE_INFINITY;
-    }
-
-    public Iterable<Edge> pathTo(int v) {
-        this.validateVertex(v);
-        if (!this.hasPathTo(v)) {
-            return null;
-        } else {
-            Stack<Edge> path = new Stack();
-            int x = v;
-
-            for (Edge e = this.edgeTo[v]; e != null; e = this.edgeTo[x]) {
-                path.push(e);
-                x = e.other(x);
-            }
-
-            return path;
-        }
     }
 
     private void validateVertex(int v) {

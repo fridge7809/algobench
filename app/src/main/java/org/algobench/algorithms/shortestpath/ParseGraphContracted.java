@@ -1,7 +1,5 @@
 package org.algobench.algorithms.shortestpath;
 
-import edu.princeton.cs.algs4.EdgeWeightedGraph;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -12,27 +10,31 @@ import java.util.Scanner;
 public class ParseGraphContracted {
 
 
-	static HashMap<Integer, Integer> rank = new HashMap<>();
 
 	public static EdgeWeightedGraph parseContracted(InputStream inputStream) throws IOException {
 		Scanner scanner = new Scanner(inputStream);
 		int n = scanner.nextInt();
 		int m = scanner.nextInt();
-		EdgeWeightedGraph graph = new EdgeWeightedGraph(n, m);
-		//scanner.nextLine();
+		int[] ranks = new int[n];
 		for (int i = 0; i < n; i++) {
 			int id = scanner.nextInt();
-			int rank = scanner.nextInt();
+			ranks[id] = scanner.nextInt();
 		}
+		scanner.nextLine();
+		EdgeWeightedGraph graph = new EdgeWeightedGraph(n, m, ranks);
 		for (int i = 0; i < m; i++) {
-			int v = scanner.nextInt();
 			String line = scanner.nextLine();
 			String[] tokens = line.split(" ");
-			String fromTo = tokens[0];
+			String[] fromTo = tokens[0].split("-");
+			int from = Integer.parseInt(fromTo[0].trim());
+			int to = Integer.parseInt(fromTo[1].trim());
 			Double weight = Double.parseDouble(tokens[1].replaceAll(",", ""));
 			String shortcut = tokens[2];
 			boolean isShortcut = shortcut.equals("-");
+			Edge edge = new Edge(from, to, weight, isShortcut);
+			graph.addEdge(edge);
 		}
+
 		return graph;
 	}
 
