@@ -9,7 +9,7 @@ import java.io.*;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-@Warmup(iterations = 1)
+@Warmup(iterations = 2)
 @Measurement(iterations = 1)
 @Fork(value = 1)
 public class PathBenchmarks {
@@ -47,8 +47,8 @@ public class PathBenchmarks {
 	}
 
 	@Benchmark
-	@BenchmarkMode(Mode.AverageTime)
-	@OutputTimeUnit(TimeUnit.SECONDS)
+	@BenchmarkMode(Mode.SingleShotTime)
+	@OutputTimeUnit(TimeUnit.MILLISECONDS)
 	public void benchmarkDijkstraCH(Blackhole bh, ExecutionState state) {
 		state.benchName = "DijkstraCH";
 		for (int i = 0; i < state.pairs.length; i++) {

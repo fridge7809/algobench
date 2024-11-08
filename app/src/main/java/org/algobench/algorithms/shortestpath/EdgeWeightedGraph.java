@@ -122,10 +122,8 @@ public class EdgeWeightedGraph {
 		return list;
 	}
 
-	public List<Edge> getAdjacentEdges(int v) {
-		List<Edge> list = new ArrayList<>();
-		this.adj(v).forEach(list::add);
-		return list;
+	public Bag<Edge> getAdjacentEdges(int v) {
+		return adj[v];
 	}
 
 	public int getRank(int v) {

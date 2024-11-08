@@ -1,5 +1,6 @@
 package org.algobench.algorithms.shortestpath;
 
+import edu.princeton.cs.algs4.IndexFibonacciMinPQ;
 import edu.princeton.cs.algs4.IndexMinPQ;
 
 public class LocalSearch {
@@ -17,6 +18,10 @@ public class LocalSearch {
     }
 
     public boolean hasWitnessPath(int[] ranks, int source, int target, int excluded, double sumWeight) {
+        if (source == excluded) {
+            throw new IllegalArgumentException("Source excluded");
+        }
+
         this.distTo[source] = 0.0;
         currentEpoch++;
 
@@ -26,8 +31,8 @@ public class LocalSearch {
             this.pq.insert(source, this.distTo[source]);
         }
 
-        int maxSettledNodes = 50;
-        while (!this.pq.isEmpty() && maxSettledNodes > 0) {
+        int hopLimit = 1;
+        while (!this.pq.isEmpty() && hopLimit > 0) {
             int v = this.pq.delMin();
 
             if (distTo(v) > sumWeight) {
@@ -39,24 +44,18 @@ public class LocalSearch {
 			        this.relax(e, v);
 		        }
 	        }
-            maxSettledNodes--;
+            hopLimit--;
         }
 
+        emptyQueue();
         return distTo[target] > sumWeight;
     }
 
     private void init() {
-
-	    for (Edge e : graph.edges()) {
-		    if (e.weight() < 0.0) {
-			    throw new IllegalArgumentException("edge " + e + " has negative weight");
-		    }
-	    }
-
         this.distTo = new double[graph.V()];
         this.edgeTo = new Edge[graph.V()];
 
-        for (int v = 0; v < graph.V(); ++v) {
+        for (int v = 0; v < graph.V(); v++) {
             this.distTo[v] = Double.POSITIVE_INFINITY;
         }
 
@@ -87,14 +86,6 @@ public class LocalSearch {
     }
 
     public double distTo(int v) {
-        this.validateVertex(v);
         return this.distTo[v];
-    }
-
-    private void validateVertex(int v) {
-        int V = this.distTo.length;
-        if (v < 0 || v >= V) {
-            throw new IllegalArgumentException("vertex " + v + " is not between 0 and " + (V - 1));
-        }
     }
 }

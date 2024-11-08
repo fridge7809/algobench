@@ -61,7 +61,14 @@ public class Edge implements Comparable<Edge> {
 		if (o == null || getClass() != o.getClass()) return false;
 
 		Edge edge = (Edge) o;
-		return v == edge.v && w == edge.w || v == edge.w && w == edge.v;
+		return (v == edge.v && w == edge.w) || (v == edge.w && w == edge.v);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = v;
+		result = 31 * result + w;
+		return result;
 	}
 
 	public static void main(String[] args) {

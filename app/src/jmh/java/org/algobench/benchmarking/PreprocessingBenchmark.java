@@ -1,12 +1,10 @@
 package org.algobench.benchmarking;
 
 import org.algobench.algorithms.shortestpath.*;
-import org.graalvm.collections.Pair;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
 import java.io.*;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 @Warmup(iterations = 0)
@@ -23,14 +21,14 @@ public class PreprocessingBenchmark {
 	@BenchmarkMode(Mode.SingleShotTime)
 	@OutputTimeUnit(TimeUnit.SECONDS)
 	public void benchmarkDijkstraBidirectional(Blackhole bh, ExecutionState state) {
-		bh.consume(state.contractionHierachiesPreprocessor);
+		bh.consume(state.contractionHierarchyPreprocessor);
 	}
 
 
 	@State(Scope.Benchmark)
 	public static class ExecutionState {
 		EdgeWeightedGraph graph;
-		ContractionHierachiesPreprocessor contractionHierachiesPreprocessor;
+		ContractionHierarchyPreprocessor contractionHierarchyPreprocessor;
 
 		@Setup(Level.Trial)
 		public void setup() throws IOException {
@@ -42,7 +40,7 @@ public class PreprocessingBenchmark {
 				}
 				graph = ParseGraph.parseInput(inputStream);
 			}
-			contractionHierachiesPreprocessor = new ContractionHierachiesPreprocessor(graph);
+			contractionHierarchyPreprocessor = new ContractionHierarchyPreprocessor(graph);
 		}
 	}
 }
