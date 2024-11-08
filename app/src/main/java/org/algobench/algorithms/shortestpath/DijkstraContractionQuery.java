@@ -142,7 +142,7 @@ public class DijkstraContractionQuery {
 	}
 
 	public static void main(String[] args) {
-		try (FileInputStream fis = new FileInputStream("/Users/christiannielsen/Library/CloudStorage/Dropbox/dev/repo/algobench/denmark_processed.graph")) {
+		try (FileInputStream fis = new FileInputStream("/Users/christiannielsen/Library/CloudStorage/Dropbox/dev/repo/algobench/app/src/test/resources/testing_augmented.graph")) {
 			EdgeWeightedGraph graph = ParseGraphAugmented.parseAugmentedGraph(fis);
 			int n = 1000;
 			Random random = new Random(12345);
@@ -157,16 +157,9 @@ public class DijkstraContractionQuery {
 			for (int i = 0; i < pairs.length; i++) {
 				int s = (int) pairs[i].getLeft();
 				int t = (int) pairs[i].getRight();
+				int k = 0;
 				DijkstraContractionQuery path = new DijkstraContractionQuery(graph, s, t);
-				DijkstraEarlyStopping earlyStopping = new DijkstraEarlyStopping(graph, s, t);
-				DijkstraEarlyStoppingBidirectional dijkstraEarlyStoppingBidirectional = new DijkstraEarlyStoppingBidirectional(graph, s, t);
 
-				if (path.distTo(t) != dijkstraEarlyStoppingBidirectional.distTo(t)) {
-					System.out.println("bidirectional and ch are not equal");
-				}
-				if (earlyStopping.distTo(t) != path.distTo(t)) {
-					System.out.println("single and ch are not equal");
-				}
 				sumRelaxedEdges += path.getCountRelaxedEdges();
 			}
 			long after = System.currentTimeMillis();

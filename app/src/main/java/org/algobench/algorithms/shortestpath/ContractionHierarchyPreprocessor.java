@@ -24,7 +24,6 @@ public class ContractionHierarchyPreprocessor {
 		this.visitedEdges = HashSet.newHashSet(graph.E());
 		this.localSearch = new LocalSearch(graph);
 		this.contractionQueue = new PriorityQueue<>(graph.V(), new NodeComparator());
-		preprocess();
 	}
 
 	public static void main(String[] args) {
@@ -35,6 +34,7 @@ public class ContractionHierarchyPreprocessor {
 		try (FileInputStream fis = new FileInputStream(inputGraphPath); FileWriter fw = new FileWriter(outputGraphPath)) {
 			EdgeWeightedGraph graph = ParseGraph.parseGraph(fis);
 			ContractionHierarchyPreprocessor ch = new ContractionHierarchyPreprocessor(graph);
+			ch.preprocess();
 			System.out.println(ch.shortcuts.size());
 
 			// Format augmented graph
@@ -64,7 +64,7 @@ public class ContractionHierarchyPreprocessor {
 	 * Creates an initial node contraction ordering, then begins contraction process.
 	 * Lazy updates rank as it is contracting.
 	 */
-	private int preprocess() {
+	public int preprocess() {
 		long startTime = System.currentTimeMillis();
 		System.out.println("Begin contraction");
 		initNodeOrder();
@@ -130,16 +130,16 @@ public class ContractionHierarchyPreprocessor {
 					int w = k.other(node);
 					double sumWeight = j.weight() + k.weight();
 
+					if ((rank[u] > rank[w])) {
+						continue;
+					}
+
 					Edge shortcut = new Edge(u, w, sumWeight, true);
 					if (visitedEdges.contains(shortcut) || shortcutsCreated.contains(shortcut)) {
 						continue;
 					}
 
-					if (!localSearch.hasWitnessPath(graph, rank, u, w, node, sumWeight)) {
-						if (!(rank[u] > rank[w])) {
-							continue;
-							//throw new RuntimeException("Shortcuts should go up in rank");
-						}
+					if (!localSearch.hasWitnessPath(graph, u, w, node, sumWeight)) {
 						shortcutsCreated.add(shortcut);
 						shortcuts.add(shortcut);
 						graph.addEdge(shortcut);
@@ -147,7 +147,6 @@ public class ContractionHierarchyPreprocessor {
 				}
 			}
 		}
-		visitedEdges.addAll(shortcutsCreated);
 		for (Edge e : adjacentEdges) {
 			visitedEdges.add(e);
 		}
@@ -155,7 +154,7 @@ public class ContractionHierarchyPreprocessor {
 	}
 
 	/**
-	 * An approximation for the amount of shortcuts to add when contracting a node.
+	 * An approximation for the number of shortcuts to add when contracting a node.
 	 * Uses Fast 1-hop local search to find witness paths.
 	 */
 	public int simulateContraction(int node) {

@@ -16,7 +16,7 @@ public class LocalSearch {
         init();
     }
 
-    public boolean hasWitnessPath(EdgeWeightedGraph graph, int[] ranks, int source, int target, int excluded, double sumWeight) {
+    public boolean hasWitnessPath(EdgeWeightedGraph graph, int source, int target, int excluded, double sumWeight) {
         if (source == excluded) {
             throw new IllegalArgumentException("Source excluded");
         }
@@ -24,14 +24,9 @@ public class LocalSearch {
         this.distTo[source] = 0.0;
         currentEpoch++;
 
-        if (pq.contains(source)) {
-            this.pq.changeKey(source, this.distTo[source]);
-        } else {
-            this.pq.insert(source, this.distTo[source]);
-        }
+        this.pq.insert(source, 0.0);
 
-        int hopLimit = 1;
-        while (!this.pq.isEmpty() && hopLimit > 0) {
+        while (!this.pq.isEmpty()) {
             int v = this.pq.delMin();
 
             if (distTo(v) > sumWeight) {
@@ -39,11 +34,10 @@ public class LocalSearch {
             }
 
 	        for (Edge e : graph.adj(v)) {
-		        if (ranks[e.other(v)] > ranks[source] && e.other(v) != excluded) {
+		        if (e.other(v) != excluded) {
 			        this.relax(e, v);
 		        }
 	        }
-            hopLimit--;
         }
 
         emptyQueue();

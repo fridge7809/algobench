@@ -19,7 +19,7 @@ public class EdgeWeightedGraph {
 
 	public EdgeWeightedGraph(int V, int[] ranks) {
 		this(V);
-		this.ranks = new int[V];
+		this.ranks = ranks;
 	}
 
 	public EdgeWeightedGraph(int V) {

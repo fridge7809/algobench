@@ -41,6 +41,7 @@ public class PreprocessingBenchmark {
 				graph = ParseGraph.parseGraph(inputStream);
 			}
 			contractionHierarchyPreprocessor = new ContractionHierarchyPreprocessor(graph);
+			contractionHierarchyPreprocessor.preprocess();
 		}
 	}
 }

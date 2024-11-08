@@ -8,6 +8,7 @@ import org.assertj.core.api.Assertions;
 import org.graalvm.collections.Pair;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.StringTokenizer;
 
 public class ShortestPathTest {
@@ -133,12 +134,38 @@ public class ShortestPathTest {
 		Assertions.assertThat(testAugmentedGraph.E()).isEqualTo(mAugmented);
 	}
 
-	@Example
+	@Property
 	void shortcutsShouldAscendInRank(@ForAll("shortcutProvider") Edge shortcut) {
 		int[] ranks = testAugmentedGraph.getRanks();
 		int u = shortcut.either();
 		int w = shortcut.other(u);
 		Assertions.assertThat(ranks[u]).isGreaterThanOrEqualTo(ranks[w]);
+	}
+
+	@Example
+	void shouldNotFindWitnessPath() {
+		LocalSearch ls = new LocalSearch(testGraph);
+		int excluded = 4;
+		int source = 1;
+		int target = 3;
+		int sum = 7 + 5;
+		Assertions.assertThat(ls.hasWitnessPath(testGraph, source, target, excluded, sum)).isTrue();
+	}
+
+	@Example
+	void shouldFindWitnessPath() {
+		LocalSearch ls = new LocalSearch(testGraph);
+		int excluded = 0;
+		int source = 1;
+		int target = 3;
+		int sum = 1 + 12;
+		Assertions.assertThat(ls.hasWitnessPath(testGraph, source, target, excluded, sum)).isTrue();
+	}
+
+	@Example
+	void parsedGraphContainsDistinctRanks() {
+		long distinctRanks = Arrays.stream(testAugmentedGraph.getRanks()).distinct().count();
+		Assertions.assertThat(distinctRanks).isPositive();
 	}
 
 	@Provide
