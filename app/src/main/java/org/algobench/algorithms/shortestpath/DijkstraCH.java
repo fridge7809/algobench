@@ -2,6 +2,13 @@ package org.algobench.algorithms.shortestpath;
 
 import edu.princeton.cs.algs4.IndexMinPQ;
 import edu.princeton.cs.algs4.Stack;
+import org.graalvm.collections.Pair;
+
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Random;
+
 
 public class DijkstraCH {
 	private double[] distL;
@@ -136,13 +143,41 @@ public class DijkstraCH {
 		return this.distL[v] < Double.POSITIVE_INFINITY;
 	}
 
-	public Iterable<Edge> pathTo(int v) {
-		if (!hasPathTo(v))
-			return null;
-		Stack<Edge> path = new Stack<>();
-		for (Edge e = edgeToL[v]; e != null; e = edgeToL[e.either()]) {
-			path.push(e);
+	public static void main(String[] args) {
+		try (FileInputStream fis = new FileInputStream("/Users/christiannielsen/Library/CloudStorage/Dropbox/dev/repo/algobench/denmark_processed.graph")) {
+			EdgeWeightedGraph graph = ParseGraphContracted.parseContracted(fis);
+			int n = 1000;
+			Random random = new Random(12345);
+			Pair[] pairs;
+			pairs = new Pair[n];
+			for (int i = 0; i < n; i++) {
+				pairs[i] = Pair.create(random.nextInt(0, graph.V()), random.nextInt(0, graph.V()));
+			}
+
+			long sumRelaxedEdges = 0;
+			long before = System.currentTimeMillis();
+			for (int i = 0; i < pairs.length; i++) {
+				int s = (int) pairs[i].getLeft();
+				int t = (int) pairs[i].getRight();
+				DijkstraCH path = new DijkstraCH(graph, s, t);
+				DijkstraEarlyStopping earlyStopping = new DijkstraEarlyStopping(graph, s, t);
+				DijkstraEarlyStoppingBidirectional dijkstraEarlyStoppingBidirectional = new DijkstraEarlyStoppingBidirectional(graph, s, t);
+
+				if (path.distTo(t) != dijkstraEarlyStoppingBidirectional.distTo(t)) {
+					System.out.println("bidirectional and ch are not equal");
+				}
+				if (earlyStopping.distTo(t) != path.distTo(t)) {
+					System.out.println("single and ch are not equal");
+				}
+				sumRelaxedEdges += path.getCountRelaxedEdges();
+			}
+			long after = System.currentTimeMillis();
+			System.out.println("Time taken: " + ((after - before)) + "ms per (s,t) search");
+			System.out.println("Relaxed: " + sumRelaxedEdges + " relaxed edges");
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		return path;
 	}
+
+
 }

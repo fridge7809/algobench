@@ -1,6 +1,5 @@
 package org.algobench.algorithms.shortestpath;
 
-import edu.princeton.cs.algs4.IndexFibonacciMinPQ;
 import edu.princeton.cs.algs4.IndexMinPQ;
 
 public class LocalSearch {
@@ -17,7 +16,7 @@ public class LocalSearch {
         init();
     }
 
-    public boolean hasWitnessPath(int[] ranks, int source, int target, int excluded, double sumWeight) {
+    public boolean hasWitnessPath(EdgeWeightedGraph graph, int[] ranks, int source, int target, int excluded, double sumWeight) {
         if (source == excluded) {
             throw new IllegalArgumentException("Source excluded");
         }
@@ -48,7 +47,7 @@ public class LocalSearch {
         }
 
         emptyQueue();
-        return distTo[target] > sumWeight;
+        return distTo[target] <= sumWeight;
     }
 
     private void init() {

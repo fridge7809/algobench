@@ -33,6 +33,10 @@ public class EdgeWeightedGraph {
 		ranks = new int[V];
 	}
 
+	public void removeNode(int v) {
+		this.adj[v] = new Bag<>();
+	}
+
 	public EdgeWeightedGraph(int V, int E) {
 		this(V);
 		if (E < 0) {

@@ -131,7 +131,7 @@ public class ContractionHierarchyPreprocessor {
 						continue;
 					}
 
-					if (localSearch.hasWitnessPath(rank, u, w, node, sumWeight)) {
+					if (!localSearch.hasWitnessPath(graph, rank, u, w, node, sumWeight)) {
 						shortcutsCreated.add(shortcut);
 						shortcuts.add(shortcut);
 						graph.addEdge(shortcut);
