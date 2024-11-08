@@ -54,7 +54,7 @@ public class PathBenchmarks {
 		for (int i = 0; i < state.pairs.length; i++) {
 			int s = (int) state.pairs[i].getLeft();
 			int t = (int) state.pairs[i].getRight();
-			DijkstraCH path = new DijkstraCH(state.graphAugmented, s, t);
+			DijkstraContractionQuery path = new DijkstraContractionQuery(state.graphAugmented, s, t);
 			bh.consume(path.distTo(t));
 			state.sumRelaxed += path.getCountRelaxedEdges();
 		}
@@ -81,7 +81,7 @@ public class PathBenchmarks {
 				if (inputStream == null) {
 					throw new FileNotFoundException("Resource " + resourceName + " not found");
 				}
-				graph = ParseGraph.parseInput(inputStream);
+				graph = ParseGraph.parseGraph(inputStream);
 			}
 
 			String resourceNameAug = "denmark_processed.graph";
@@ -90,7 +90,7 @@ public class PathBenchmarks {
 				if (inputStream == null) {
 					throw new FileNotFoundException("Resource " + resourceNameAug + " not found");
 				}
-				graphAugmented = ParseGraphContracted.parseContracted(inputStream);
+				graphAugmented = ParseGraphAugmented.parseAugmentedGraph(inputStream);
 			}
 			pairs = new Pair[n];
 			for (int i = 0; i < n; i++) {

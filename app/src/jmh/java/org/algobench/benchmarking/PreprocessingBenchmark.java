@@ -38,7 +38,7 @@ public class PreprocessingBenchmark {
 				if (inputStream == null) {
 					throw new FileNotFoundException("Resource " + resourceName + " not found");
 				}
-				graph = ParseGraph.parseInput(inputStream);
+				graph = ParseGraph.parseGraph(inputStream);
 			}
 			contractionHierarchyPreprocessor = new ContractionHierarchyPreprocessor(graph);
 		}

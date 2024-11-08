@@ -7,9 +7,8 @@ package org.algobench.algorithms.shortestpath;//
 import edu.princeton.cs.algs4.Bag;
 import edu.princeton.cs.algs4.StdRandom;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.stream.IntStream;
 
 public class EdgeWeightedGraph {
 	private static final String NEWLINE = System.getProperty("line.separator");
@@ -17,6 +16,11 @@ public class EdgeWeightedGraph {
 	private int E;
 	private Bag<Edge>[] adj;
 	private int[] ranks;
+
+	public EdgeWeightedGraph(int V, int[] ranks) {
+		this(V);
+		this.ranks = new int[V];
+	}
 
 	public EdgeWeightedGraph(int V) {
 		if (V < 0) {
@@ -30,7 +34,31 @@ public class EdgeWeightedGraph {
 				this.adj[v] = new Bag();
 			}
 		}
-		ranks = new int[V];
+		this.ranks = new int[V];
+	}
+
+	private boolean containsEdgeLoop(Edge e) {
+		for (int i = 0; i < V; i++) {
+			for (Edge edge : adj[i]) {
+				if (edge.equals(e)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * For testing only
+	 */
+	public boolean containsEdge(Edge e) {
+		Set<Edge> edges = new HashSet<>(E);
+		for (int i = 0; i < V; i++) {
+			for (Edge edge : adj[i]) {
+				edges.add(edge);
+			}
+		}
+		return edges.contains(e);
 	}
 
 	public void removeNode(int v) {
@@ -103,6 +131,14 @@ public class EdgeWeightedGraph {
 		return this.adj[v].size();
 	}
 
+	public List<Edge> allEdges() {
+		List<Edge> edges = new ArrayList<>();
+		for (Edge edge : edges()) {
+			edges.add(edge);
+		}
+		return edges;
+	}
+
 	public Iterable<Edge> edges() {
 		Bag<Edge> list = new Bag();
 
@@ -132,6 +168,10 @@ public class EdgeWeightedGraph {
 
 	public int getRank(int v) {
 		return ranks[v];
+	}
+
+	public int[] getRanks() {
+		return ranks;
 	}
 
 	public String toString() {

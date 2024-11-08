@@ -28,8 +28,12 @@ public class ContractionHierarchyPreprocessor {
 	}
 
 	public static void main(String[] args) {
-		try (FileInputStream fis = new FileInputStream("app/src/test/resources/denmark.graph"); FileWriter fw = new FileWriter("denmark_processed.graph")) {
-			EdgeWeightedGraph graph = ParseGraph.parseInput(fis);
+		writeAugmentedGraphToFile("app/src/test/resources/denmark.graph", "denmark_processed.graph");
+	}
+
+	public static void writeAugmentedGraphToFile(String inputGraphPath, String outputGraphPath) {
+		try (FileInputStream fis = new FileInputStream(inputGraphPath); FileWriter fw = new FileWriter(outputGraphPath)) {
+			EdgeWeightedGraph graph = ParseGraph.parseGraph(fis);
 			ContractionHierarchyPreprocessor ch = new ContractionHierarchyPreprocessor(graph);
 			System.out.println(ch.shortcuts.size());
 
@@ -132,6 +136,10 @@ public class ContractionHierarchyPreprocessor {
 					}
 
 					if (!localSearch.hasWitnessPath(graph, rank, u, w, node, sumWeight)) {
+						if (!(rank[u] > rank[w])) {
+							continue;
+							//throw new RuntimeException("Shortcuts should go up in rank");
+						}
 						shortcutsCreated.add(shortcut);
 						shortcuts.add(shortcut);
 						graph.addEdge(shortcut);
