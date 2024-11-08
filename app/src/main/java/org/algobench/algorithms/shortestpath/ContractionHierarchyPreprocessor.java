@@ -11,10 +11,12 @@ public class ContractionHierarchyPreprocessor {
 	private final Set<Edge> visitedEdges;
 	private final EdgeWeightedGraph graph;
 	private final LocalSearch localSearch;
-	private final int[] rank;
+	private int[] rank = new int[0];
+	private final List<Integer> contractionOrder;
 	private final Set<Edge> shortcuts;
 	private final int[] deletedNeighbors;
 	private PriorityQueue<Integer> contractionQueue;
+	private final NodeComparator nodeComparator;
 
 	public ContractionHierarchyPreprocessor(EdgeWeightedGraph graph) {
 		this.graph = graph;
@@ -23,12 +25,16 @@ public class ContractionHierarchyPreprocessor {
 		this.deletedNeighbors = new int[graph.V()];
 		this.visitedEdges = HashSet.newHashSet(graph.E());
 		this.localSearch = new LocalSearch(graph);
+		this.contractionOrder = new ArrayList<>(graph.V());
 		this.contractionQueue = new PriorityQueue<>(graph.V(), new NodeComparator());
+		this.nodeComparator = new NodeComparator();
 	}
 
 	public static void main(String[] args) {
 		writeAugmentedGraphToFile("app/src/test/resources/denmark.graph", "denmark_processed.graph");
 	}
+
+
 
 	public static void writeAugmentedGraphToFile(String inputGraphPath, String outputGraphPath) {
 		try (FileInputStream fis = new FileInputStream(inputGraphPath); FileWriter fw = new FileWriter(outputGraphPath)) {
@@ -54,7 +60,7 @@ public class ContractionHierarchyPreprocessor {
 		}
 	}
 
-	private int calculateRank(int node) {
+	public int calculateRank(int node) {
 		int amountOfShortcuts = simulateContraction(node);
 		int edgeDifference = (amountOfShortcuts - graph.degree(node));
 		return edgeDifference + deletedNeighbors[node];
@@ -84,6 +90,7 @@ public class ContractionHierarchyPreprocessor {
 				}
 			} else {
 				rank[candidate] = candidateRank;
+				contractionOrder.add(candidate);
 				contractNode(candidate);
 				signalDeletionToNeighbours(candidate);
 			}
@@ -189,10 +196,22 @@ public class ContractionHierarchyPreprocessor {
 		return false;
 	}
 
+	public NodeComparator getNodeComparator() {
+		return nodeComparator;
+	}
+
 	private class NodeComparator implements Comparator<Integer> {
 		@Override
 		public int compare(Integer o1, Integer o2) {
 			return Integer.compare(rank[o1], rank[o2]);
 		}
+	}
+
+	public List<Integer> getContractionOrder() {
+		return contractionOrder;
+	}
+
+	public int[] getRank() {
+		return rank;
 	}
 }

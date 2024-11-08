@@ -2,6 +2,9 @@ package org.algobench.algorithms.shortestpath;
 
 import edu.princeton.cs.algs4.IndexMinPQ;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class LocalSearch {
     private double[] distTo;
     private Edge[] edgeTo;
@@ -17,17 +20,20 @@ public class LocalSearch {
     }
 
     public boolean hasWitnessPath(EdgeWeightedGraph graph, int source, int target, int excluded, double sumWeight) {
-        if (source == excluded) {
-            throw new IllegalArgumentException("Source excluded");
-        }
+        int settledCount = 0;
 
         this.distTo[source] = 0.0;
         currentEpoch++;
 
         this.pq.insert(source, 0.0);
 
-        while (!this.pq.isEmpty()) {
+        while (!this.pq.isEmpty() && settledCount < 5) {
             int v = this.pq.delMin();
+            settledCount++;
+
+            if (source == excluded) {
+                throw new IllegalArgumentException("Source excluded");
+            }
 
             if (distTo(v) > sumWeight) {
                 break;
@@ -80,5 +86,13 @@ public class LocalSearch {
 
     public double distTo(int v) {
         return this.distTo[v];
+    }
+
+    public int[] getEpoch() {
+        return this.epoch;
+    }
+
+    public double[] getDistoTo() {
+        return this.distTo;
     }
 }

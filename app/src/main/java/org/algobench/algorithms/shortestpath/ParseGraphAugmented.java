@@ -1,5 +1,7 @@
 package org.algobench.algorithms.shortestpath;
 
+import edu.princeton.cs.algs4.In;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -26,7 +28,8 @@ public class ParseGraphAugmented {
 			String[] fromTo = tokens[0].split("-");
 			int from = Integer.parseInt(fromTo[0].trim());
 			int to = Integer.parseInt(fromTo[1].trim());
-			Double weight = Double.parseDouble(tokens[1].replaceAll(",", ""));
+			Integer weight = Integer.parseInt(tokens[1].replaceAll(",", ""));
+			weight = weight / 100000;
 			String shortcut = tokens[2];
 			boolean isShortcut = !shortcut.contains("-");
 			Edge edge = new Edge(from, to, weight, isShortcut);

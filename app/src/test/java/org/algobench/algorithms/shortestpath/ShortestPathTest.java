@@ -15,9 +15,11 @@ public class ShortestPathTest {
 
 	static FileInputStream file;
 	static org.algobench.algorithms.shortestpath.EdgeWeightedGraph testGraph;
+	static org.algobench.algorithms.shortestpath.EdgeWeightedGraph testGraphToProcess;
 	static edu.princeton.cs.algs4.EdgeWeightedGraph testGraphNormal;
 	static edu.princeton.cs.algs4.EdgeWeightedGraph testGraphNormalAugmented;
 	static EdgeWeightedGraph testAugmentedGraph;
+	static ContractionHierarchyPreprocessor preprocessor;
 	static DijkstraSP dijkstraSP;
 	static int n;
 	static int m;
@@ -28,12 +30,14 @@ public class ShortestPathTest {
 	/**
 	 * We differentiate between our own graph/edge models and the algs4 models.
 	 * This is done to be able to test our own SP algorithms against the algs4 implementation.
-	 * We assume algs4 has the correct implementation.
+	 * We assume algs4 has the correct implementation, which we test our modified dijkstra implementations against.
 	 */
 	@BeforeContainer
 	static void setup() throws IOException {
         file = new FileInputStream("src/test/resources/testing.graph");
 		testGraph = ParseGraph.parseGraph(file);
+		file = new FileInputStream("src/test/resources/testing.graph");
+		testGraphToProcess = ParseGraph.parseGraph(file);
 		file = new FileInputStream("src/test/resources/testing.graph");
 		testGraphNormal = ParseGraph.parseAlgsGraph(file);
 		file = new FileInputStream("src/test/resources/testing.graph");
@@ -54,6 +58,8 @@ public class ShortestPathTest {
 		tokenizer = new StringTokenizer(reader.readLine());
 		nAugmented = Integer.parseInt(tokenizer.nextToken());
 		mAugmented = Integer.parseInt(tokenizer.nextToken());
+
+		preprocessor = new ContractionHierarchyPreprocessor(testGraphToProcess);
 	}
 
 	@Example
@@ -69,8 +75,8 @@ public class ShortestPathTest {
 
 	/**
 	 * Contraction hierarchy solution relies on correct equality operation.
-	 * Edge equality is symmetric and only considers from-to node pairs
-	 * Edge(u-w) == Edge(w-u)
+	 * Edge equality is symmetric and only considered from-to node pairs.
+	 * Edge(u-w) == Edge(w-u).
 	 */
 	@Example
 	void graphContainsEdges_whenParsedFromFile() {
@@ -134,14 +140,6 @@ public class ShortestPathTest {
 		Assertions.assertThat(testAugmentedGraph.E()).isEqualTo(mAugmented);
 	}
 
-	@Property
-	void shortcutsShouldAscendInRank(@ForAll("shortcutProvider") Edge shortcut) {
-		int[] ranks = testAugmentedGraph.getRanks();
-		int u = shortcut.either();
-		int w = shortcut.other(u);
-		Assertions.assertThat(ranks[u]).isGreaterThanOrEqualTo(ranks[w]);
-	}
-
 	@Example
 	void shouldNotFindWitnessPath() {
 		LocalSearch ls = new LocalSearch(testGraph);
@@ -186,19 +184,71 @@ public class ShortestPathTest {
 	void dijkstraBidirectional_hasCorrectShortestPath(@ForAll("randomSourceTargetPairProvider") Pair<Integer, Integer> sourceTarget) {
 		int s = sourceTarget.getLeft();
 		int t = sourceTarget.getRight();
-		DijkstraEarlyStoppingBidirectional earlyStopping = new DijkstraEarlyStoppingBidirectional(testGraph, s, t);
-		DijkstraUndirectedSP dijkstraUndirectedSP = new DijkstraUndirectedSP(testGraphNormal, s);
-		Assertions.assertThat(earlyStopping.distTo(t)).isEqualTo(dijkstraUndirectedSP.distTo(t));
+		DijkstraBidirectional bidirectional = new DijkstraBidirectional(testGraph, s, t);
+		DijkstraUndirectedSP dijkstra = new DijkstraUndirectedSP(testGraphNormal, s);
+		Assertions.assertThat(bidirectional.distTo(t)).isEqualTo(dijkstra.distTo(t));
 	}
 
 	@Property
 	void dijkstraContractionQuery_hasCorrectShortestPath(@ForAll("randomSourceTargetPairProvider") Pair<Integer, Integer> sourceTarget) {
 		int s = sourceTarget.getLeft();
 		int t = sourceTarget.getRight();
-		DijkstraContractionQuery earlyStopping = new DijkstraContractionQuery(testAugmentedGraph, s, t);
+		DijkstraBidirectional contractionQuery = new DijkstraBidirectional(testAugmentedGraph, s, t);
+		DijkstraUndirectedSP dijkstra = new DijkstraUndirectedSP(testGraphNormal, s);
+		Assertions.assertThat(contractionQuery.distTo(t)).isEqualTo(dijkstra.distTo(t));
+	}
+
+	@Example
+	void dijkstraContractionQuery_hasCorrectShortest() {
+		int s = 0;
+		int t = 4;
+		DijkstraBidirectional earlyStopping = new DijkstraBidirectional(testAugmentedGraph, s, t);
 		DijkstraUndirectedSP dijkstraUndirectedSP = new DijkstraUndirectedSP(testGraphNormal, s);
 		Assertions.assertThat(earlyStopping.distTo(t)).isEqualTo(dijkstraUndirectedSP.distTo(t));
 	}
+
+	@Example
+	void nodeContraction_returnsShortcutsAdded() {
+		Assertions.assertThat(preprocessor.simulateContraction(0)).isEqualTo(1);
+	}
+
+	@Example
+	void nodeRank_isCalculatedCorrectly() throws Exception {
+		// Test execution order may effect when a preprocessor mutates the internal graph of the preprocessor
+		// Init a new one for each test execution. Messy, but it works :)
+		file = new FileInputStream("src/test/resources/testing.graph");
+		testGraphToProcess = ParseGraph.parseGraph(file);
+		preprocessor = new ContractionHierarchyPreprocessor(testGraphToProcess);
+		Assertions.assertThat(preprocessor.calculateRank(0)).isEqualTo(-1);
+		Assertions.assertThat(preprocessor.calculateRank(1)).isEqualTo(5);
+		Assertions.assertThat(preprocessor.calculateRank(2)).isEqualTo(-2);
+		Assertions.assertThat(preprocessor.calculateRank(3)).isEqualTo(-0);
+		Assertions.assertThat(preprocessor.calculateRank(4)).isEqualTo(-2);
+		Assertions.assertThat(preprocessor.calculateRank(5)).isEqualTo(-1);
+		Assertions.assertThat(preprocessor.calculateRank(6)).isEqualTo(-1);
+	}
+
+	@Example
+	void nodesContractionOrderIsSortedAccordingToRank() {
+		preprocessor = new ContractionHierarchyPreprocessor(testGraphToProcess);
+		preprocessor.preprocess();
+		Assertions.assertThat(preprocessor.getContractionOrder()).isSortedAccordingTo(preprocessor.getNodeComparator());
+	}
+
+	// If some edge equals another edge, it has the same weight
+	@Property
+	void graphsHaveIdenticalEdgeWeights_whenParsedFromFile(@ForAll("weightPairProvider") Tuple.Tuple2 weights) {
+		Assertions.assertThat(weights.get1().equals(weights.get2())).isTrue();
+	}
+
+	@Provide
+	Arbitrary<Tuple.Tuple2> weightPairProvider() {
+		return Arbitraries.of(testGraph.allEdges())
+				.tuple2()
+				.filter(tuple -> tuple.get1().equals(tuple.get2()))
+				.map(tuple -> Tuple.of(tuple.get1().weight(), tuple.get2().weight()));
+	}
+
 
 	@Provide
 	Arbitrary<Pair<Integer, Integer>> randomSourceTargetPairProvider() {

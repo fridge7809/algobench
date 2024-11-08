@@ -54,7 +54,7 @@ public class PathBenchmarks {
 		for (int i = 0; i < state.pairs.length; i++) {
 			int s = (int) state.pairs[i].getLeft();
 			int t = (int) state.pairs[i].getRight();
-			DijkstraContractionQuery path = new DijkstraContractionQuery(state.graphAugmented, s, t);
+			DijkstraBidirectional path = new DijkstraBidirectional(state.graphAugmented, s, t);
 			bh.consume(path.distTo(t));
 			state.sumRelaxed += path.getCountRelaxedEdges();
 		}

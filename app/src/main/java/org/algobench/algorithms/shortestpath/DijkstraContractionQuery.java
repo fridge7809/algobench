@@ -5,20 +5,21 @@ import org.graalvm.collections.Pair;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
 
 
 public class DijkstraContractionQuery {
-	private double[] distL;
-	private double[] distR;
+	private double[] distS;
+	private double[] distT;
 	private double d;
 	private boolean[] settledL;
 	private boolean[] settledR;
 
 	private Edge[] edgeToL;
 	private Edge[] edgeToR;
-	private IndexMinPQ<Double> pqL;
-	private IndexMinPQ<Double> pqR;
+	private IndexMinPQ<Double> pqUp;
+	private IndexMinPQ<Double> pqDown;
 	private long countRelaxedEdges;
 
 	public long getCountRelaxedEdges() {
@@ -32,73 +33,70 @@ public class DijkstraContractionQuery {
 	public DijkstraContractionQuery(EdgeWeightedGraph graph, int source, int target) {
 		// Initialize variables
 		countRelaxedEdges = 0;
-		this.distL = new double[graph.V()];
-		this.distR = new double[graph.V()];
+		this.distS = new double[graph.V()];
+		this.distT = new double[graph.V()];
 		this.settledL = new boolean[graph.V()];
 		this.settledR = new boolean[graph.V()];
 		this.edgeToL = new Edge[graph.V()];
 		this.edgeToR = new Edge[graph.V()];
 
-		for (int v = 0; v < graph.V(); v++) {
-			this.distL[v] = Double.POSITIVE_INFINITY;
-			this.distR[v] = Double.POSITIVE_INFINITY;
-		}
+		Arrays.fill(distS, Double.POSITIVE_INFINITY);
+		Arrays.fill(distT, Double.POSITIVE_INFINITY);
 
-		this.distL[source] = 0.0;
-		this.distR[target] = 0.0;
+		this.distS[source] = 0.0;
+		this.distT[target] = 0.0;
 
 		// Initialize priority queues
-		this.pqL = new IndexMinPQ<>(graph.V());
-		this.pqL.insert(source, this.distL[source]);
-		this.pqR = new IndexMinPQ<>(graph.V());
-		this.pqR.insert(target, this.distR[target]);
+		this.pqUp = new IndexMinPQ<>(graph.V());
+		this.pqUp.insert(source, this.distS[source]);
+		this.pqDown = new IndexMinPQ<>(graph.V());
+		this.pqDown.insert(target, this.distT[target]);
 
-		d = Double.POSITIVE_INFINITY; // Initialize shortest distance tracker
+		d = Double.POSITIVE_INFINITY;
 
-		while (!this.pqL.isEmpty() && !this.pqR.isEmpty()) {
-			// Early stopping criteria: stop searching when the path about to be searched is
-			// longer than the current shortest path
-			if (pqL.minKey() + pqR.minKey() >= d) {
+		boolean rDirection = true; // true = up, false = down
+
+		while ((!this.pqUp.isEmpty() || !this.pqDown.isEmpty())) {
+
+			// Ensure pqUp and pqDown are non-empty before calling minKey()
+			if (!this.pqUp.isEmpty() && !this.pqDown.isEmpty()) {
+				if (d < Math.min(pqUp.minKey(), pqDown.minKey())) {
+					break;
+				}
+			} else if (!this.pqUp.isEmpty() && d < pqUp.minKey()) {
+				break;
+			} else if (!this.pqDown.isEmpty() && d < pqDown.minKey()) {
 				break;
 			}
 
-			// Process the vertex with the minimum distance from left
-			int u = this.pqL.minIndex();
-			if (this.pqR.contains(u)) { // Check if the vertex is settled from right
-				d = Math.min(d, this.distL[u] + this.distR[u]);
+			if (!this.pqUp.isEmpty()) {
+				rDirection = !rDirection;
+				int u = this.pqUp.delMin();
+				d = Math.min(d, this.distS[u] + this.distT[u]);
+				settleVertex(graph, u, !rDirection);
 			}
-			this.pqL.delMin();
-			settleVertex(graph, u, true);
 
-			// Process the vertex with the minimum distance from right
-			int v = this.pqR.minIndex();
-			if (this.pqL.contains(v)) { // Check if the vertex is settled from left
-				d = Math.min(d, this.distL[v] + this.distR[v]);
+			if (!this.pqDown.isEmpty()) {
+				rDirection = !rDirection;
+				int u = this.pqDown.minIndex();
+				d = Math.min(d, this.distS[u] + this.distT[u]);
+				this.pqDown.delMin();
+				settleVertex(graph, u, !rDirection);
 			}
-			this.pqR.delMin();
-			settleVertex(graph, v, false);
 
 		}
 	}
 
-	private void settleVertex(EdgeWeightedGraph graph, int vertex, boolean isLeft) {
-		if (isLeft) {
-			if (settledL[vertex])
-				return; // Already settled
-			settledL[vertex] = true;
-
+	private void settleVertex(EdgeWeightedGraph graph, int vertex, boolean isUp) {
+		if (isUp) {
 			for (Edge e : graph.adj(vertex)) {
-				if (graph.getRank(vertex) > graph.getRank(e.other(vertex))) {
+				if (graph.getRank(vertex) < graph.getRank(e.other(vertex))) {
 					relax(e, vertex, true);
 				}
 			}
 		} else {
-			if (settledR[vertex])
-				return; // Already settled
-			settledR[vertex] = true;
-
 			for (Edge e : graph.adj(vertex)) {
-				if (graph.getRank(vertex) > graph.getRank(e.other(vertex))) {
+				if (graph.getRank(vertex) < graph.getRank(e.other(vertex))) {
 					relax(e, vertex, false);
 				}
 			}
@@ -110,35 +108,36 @@ public class DijkstraContractionQuery {
 		countRelaxedEdges++;
 		if (isLeft) {
 			// Update distance to w if a shorter path is found
-			if (this.distL[w] > this.distL[v] + e.weight()) {
-				this.distL[w] = this.distL[v] + e.weight(); // Update distance based on edge weight
+			if (this.distS[w] > this.distS[v] + e.weight()) {
+				this.distS[w] = this.distS[v] + e.weight(); // Update distance based on edge weight
 				this.edgeToL[w] = e;
-				if (this.pqL.contains(w)) {
-					this.pqL.decreaseKey(w, this.distL[w]);
+				if (this.pqUp.contains(w)) {
+					this.pqUp.decreaseKey(w, this.distS[w]);
 				} else {
-					this.pqL.insert(w, this.distL[w]);
+					this.pqUp.insert(w, this.distS[w]);
 				}
 			}
 		} else {
 			// Update distance to w if a shorter path is found
-			if (this.distR[w] > this.distR[v] + e.weight()) {
-				this.distR[w] = this.distR[v] + e.weight(); // Update distance based on edge weight
+			if (this.distT[w] > this.distT[v] + e.weight()) {
+				this.distT[w] = this.distT[v] + e.weight(); // Update distance based on edge weight
 				this.edgeToR[w] = e;
-				if (this.pqR.contains(w)) {
-					this.pqR.decreaseKey(w, this.distR[w]);
+				if (this.pqDown.contains(w)) {
+					this.pqDown.decreaseKey(w, this.distT[w]);
 				} else {
-					this.pqR.insert(w, this.distR[w]);
+					this.pqDown.insert(w, this.distT[w]);
 				}
 			}
 		}
 	}
 
 	public double distTo(int v) {
-		return this.distL[v];
+		return d;
 	}
 
+
 	public boolean hasPathTo(int v) {
-		return this.distL[v] < Double.POSITIVE_INFINITY;
+		return distS[v] < Double.POSITIVE_INFINITY;
 	}
 
 	public static void main(String[] args) {
@@ -157,9 +156,7 @@ public class DijkstraContractionQuery {
 			for (int i = 0; i < pairs.length; i++) {
 				int s = (int) pairs[i].getLeft();
 				int t = (int) pairs[i].getRight();
-				int k = 0;
-				DijkstraContractionQuery path = new DijkstraContractionQuery(graph, s, t);
-
+				DijkstraBidirectional path = new DijkstraBidirectional(graph, s, t);
 				sumRelaxedEdges += path.getCountRelaxedEdges();
 			}
 			long after = System.currentTimeMillis();
@@ -169,6 +166,4 @@ public class DijkstraContractionQuery {
 			e.printStackTrace();
 		}
 	}
-
-
 }
