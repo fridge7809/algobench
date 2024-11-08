@@ -66,9 +66,9 @@ public class Edge implements Comparable<Edge> {
 
 	@Override
 	public int hashCode() {
-		int result = v;
-		result = 31 * result + w;
-		return result;
+		int sum = v + w;
+		int product = v * w;
+		return 31 * sum + product;
 	}
 
 	public static void main(String[] args) {
