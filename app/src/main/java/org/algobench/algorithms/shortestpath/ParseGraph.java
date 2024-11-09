@@ -47,6 +47,9 @@ public class ParseGraph {
 			double weight = Double.parseDouble(tokenizer.nextToken());
 			graph.addEdge(new Edge(fromInt, toInt, weight, false));
 		}
+
+		graph.setCoords(vertices);
+
 		return graph;
 	}
 

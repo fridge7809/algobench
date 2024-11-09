@@ -6,6 +6,7 @@ package org.algobench.algorithms.shortestpath;//
 
 import edu.princeton.cs.algs4.Bag;
 import edu.princeton.cs.algs4.StdRandom;
+import org.graalvm.collections.Pair;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -16,10 +17,19 @@ public class EdgeWeightedGraph {
 	private int E;
 	private Bag<Edge>[] adj;
 	private int[] ranks;
+	private HashMap<Integer, Pair<Double, Double>> coords;
 
 	public EdgeWeightedGraph(int V, int[] ranks) {
 		this(V);
 		this.ranks = ranks;
+	}
+
+	public void setCoords(HashMap<Integer, Pair<Double, Double>> coords) {
+		this.coords = coords;
+	}
+
+	public HashMap<Integer, Pair<Double, Double>> getCoords() {
+		return coords;
 	}
 
 	public EdgeWeightedGraph(int V) {
