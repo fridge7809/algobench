@@ -141,9 +141,9 @@ public class DijkstraContractionQuery {
 	}
 
 	public static void main(String[] args) {
-		try (FileInputStream fis = new FileInputStream("/Users/christiannielsen/Library/CloudStorage/Dropbox/dev/repo/algobench/app/src/test/resources/testing_augmented.graph")) {
+		try (FileInputStream fis = new FileInputStream("/Users/mathiasfaberkristiansen/Projects/ITU - new/Applied-algorithms/algobench/denmark_processed.graph")) {
 			EdgeWeightedGraph graph = ParseGraphAugmented.parseAugmentedGraph(fis);
-			int n = 1000;
+			int n = 10;
 			Random random = new Random(12345);
 			Pair[] pairs;
 			pairs = new Pair[n];
@@ -152,16 +152,19 @@ public class DijkstraContractionQuery {
 			}
 
 			long sumRelaxedEdges = 0;
-			long before = System.currentTimeMillis();
 			for (int i = 0; i < pairs.length; i++) {
 				int s = (int) pairs[i].getLeft();
 				int t = (int) pairs[i].getRight();
-				DijkstraBidirectional path = new DijkstraBidirectional(graph, s, t);
-				sumRelaxedEdges += path.getCountRelaxedEdges();
+				long before = System.currentTimeMillis();
+				DijkstraContractionQuery path = new DijkstraContractionQuery(graph, s, t);
+				long after = System.currentTimeMillis();
+				sumRelaxedEdges = path.getCountRelaxedEdges();
+				System.out.println("Relaxed: " + sumRelaxedEdges + " relaxed edges in time: " + ((after - before)));
+				sumRelaxedEdges = 0;
 			}
 			long after = System.currentTimeMillis();
-			System.out.println("Time taken: " + ((after - before)) + "ms per (s,t) search");
-			System.out.println("Relaxed: " + sumRelaxedEdges + " relaxed edges");
+			// System.out.println("Time taken: " + ((after - before)) + "ms per (s,t) search");
+			// System.out.println("Relaxed: " + sumRelaxedEdges + " relaxed edges");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

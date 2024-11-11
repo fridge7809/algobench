@@ -8,12 +8,12 @@ import java.util.stream.IntStream;
 
 public class ContractionHierarchyPreprocessor {
 
-	private final Set<Edge> visitedEdges;
+	private final EdgeContainer visitedEdges;
 	private final EdgeWeightedGraph graph;
 	private final LocalSearch localSearch;
 	private int[] rank = new int[0];
 	private final List<Integer> contractionOrder;
-	private final Set<Edge> shortcuts;
+	private final EdgeContainer shortcuts;
 	private final int[] deletedNeighbors;
 	private PriorityQueue<Integer> contractionQueue;
 	private final NodeComparator nodeComparator;
@@ -21,9 +21,9 @@ public class ContractionHierarchyPreprocessor {
 	public ContractionHierarchyPreprocessor(EdgeWeightedGraph graph) {
 		this.graph = graph;
 		this.rank = new int[graph.V()];
-		this.shortcuts = HashSet.newHashSet(570193);
+		this.shortcuts = new EdgeContainer();
 		this.deletedNeighbors = new int[graph.V()];
-		this.visitedEdges = HashSet.newHashSet(graph.E());
+		this.visitedEdges = new EdgeContainer();
 		this.localSearch = new LocalSearch(graph);
 		this.contractionOrder = new ArrayList<>(graph.V());
 		this.contractionQueue = new PriorityQueue<>(graph.V(), new NodeComparator());
@@ -34,10 +34,9 @@ public class ContractionHierarchyPreprocessor {
 		writeAugmentedGraphToFile("app/src/test/resources/denmark.graph", "denmark_processed.graph");
 	}
 
-
-
 	public static void writeAugmentedGraphToFile(String inputGraphPath, String outputGraphPath) {
-		try (FileInputStream fis = new FileInputStream(inputGraphPath); FileWriter fw = new FileWriter(outputGraphPath)) {
+		try (FileInputStream fis = new FileInputStream(inputGraphPath);
+				FileWriter fw = new FileWriter(outputGraphPath)) {
 			EdgeWeightedGraph graph = ParseGraph.parseGraph(fis);
 			ContractionHierarchyPreprocessor ch = new ContractionHierarchyPreprocessor(graph);
 			ch.preprocess();
@@ -48,10 +47,10 @@ public class ContractionHierarchyPreprocessor {
 			sb.append(ch.graph.V()).append(" ").append(ch.graph.E()).append("\n");
 
 			for (int i = 0; i < ch.graph.V(); i++) {
-				sb.append(i).append(" ").append(ch.rank[i]).append("\n");
+			sb.append(i).append(" ").append(ch.rank[i]).append("\n");
 			}
 			for (Edge e : ch.graph.edges()) {
-				sb.append(e).append(e.isShortcut() ? " 1" : " -1").append("\n");
+			sb.append(e).append(e.isShortcut() ? " 1" : " -1").append("\n");
 			}
 
 			fw.write(sb.toString());
@@ -67,7 +66,8 @@ public class ContractionHierarchyPreprocessor {
 	}
 
 	/**
-	 * Creates an initial node contraction ordering, then begins contraction process.
+	 * Creates an initial node contraction ordering, then begins contraction
+	 * process.
 	 * Lazy updates rank as it is contracting.
 	 */
 	public int preprocess() {
@@ -76,6 +76,7 @@ public class ContractionHierarchyPreprocessor {
 		initNodeOrder();
 		int lazyUpdates = 0;
 		int lazyUpdatesLimit = 50;
+		int contractedNodes = 0;
 
 		while (!contractionQueue.isEmpty()) {
 			int candidate = contractionQueue.poll();
@@ -91,6 +92,8 @@ public class ContractionHierarchyPreprocessor {
 			} else {
 				rank[candidate] = candidateRank;
 				contractionOrder.add(candidate);
+				contractedNodes++;
+				if(contractedNodes % 2000 == 0) System.out.println(contractedNodes);
 				contractNode(candidate);
 				signalDeletionToNeighbours(candidate);
 			}
@@ -126,37 +129,38 @@ public class ContractionHierarchyPreprocessor {
 		});
 	}
 
+
 	public int contractNode(int node) {
 		Bag<Edge> adjacentEdges = graph.getAdjacentEdges(node);
 		Set<Edge> shortcutsCreated = new HashSet<>();
 
 		for (Edge j : adjacentEdges) {
-			for (Edge k : adjacentEdges) {
-				if (!k.equals(j)) {
-					int u = j.other(node);
-					int w = k.other(node);
-					double sumWeight = j.weight() + k.weight();
+			if (rank[j.other(node)] > rank[node]) {
+				for (Edge k : adjacentEdges) {
+					if (!k.equals(j) && rank[k.other(node)] > rank[node]) {
+						int u = j.other(node);
+						int w = k.other(node);
+						double sumWeight = j.weight() + k.weight();
 
-					if ((rank[u] > rank[w])) {
-						continue;
-					}
+						if (visitedEdges.containsEdge(node, u) || visitedEdges.containsEdge(node, w) || shortcuts.containsEdge(u, w)) {
+							continue;
+						}
 
-					Edge shortcut = new Edge(u, w, sumWeight, true);
-					if (visitedEdges.contains(shortcut) || shortcutsCreated.contains(shortcut)) {
-						continue;
-					}
+						Edge shortcut = new Edge(u, w, sumWeight, true);
 
-					if (!localSearch.hasWitnessPath(graph, u, w, node, sumWeight)) {
-						shortcutsCreated.add(shortcut);
-						shortcuts.add(shortcut);
-						graph.addEdge(shortcut);
+						if (!localSearch.hasWitnessPath(graph, u, w, node, sumWeight)) {
+							shortcutsCreated.add(shortcut);
+							shortcuts.addEdge(u, w);
+							graph.addEdge(shortcut);
+						}
 					}
 				}
 			}
 		}
 		for (Edge e : adjacentEdges) {
-			visitedEdges.add(e);
+			visitedEdges.addEdge(node, e.other(node));;
 		}
+		//System.out.println(shortcutsCreated + " shortcuts for node: " + node);
 		return shortcutsCreated.size();
 	}
 

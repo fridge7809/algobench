@@ -1,11 +1,16 @@
 package org.algobench.algorithms.shortestpath;
 
+import edu.princeton.cs.algs4.Bag;
 import edu.princeton.cs.algs4.DijkstraSP;
 import edu.princeton.cs.algs4.DijkstraUndirectedSP;
 import net.jqwik.api.*;
 import net.jqwik.api.lifecycle.BeforeContainer;
 import org.assertj.core.api.Assertions;
 import org.graalvm.collections.Pair;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.*;
 import java.util.Arrays;
@@ -26,22 +31,24 @@ public class ShortestPathTest {
 	static int nAugmented;
 	static int mAugmented;
 
-
 	/**
 	 * We differentiate between our own graph/edge models and the algs4 models.
-	 * This is done to be able to test our own SP algorithms against the algs4 implementation.
-	 * We assume algs4 has the correct implementation, which we test our modified dijkstra implementations against.
+	 * This is done to be able to test our own SP algorithms against the algs4
+	 * implementation.
+	 * We assume algs4 has the correct implementation, which we test our modified
+	 * dijkstra implementations against.
 	 */
 	@BeforeContainer
 	static void setup() throws IOException {
-        file = new FileInputStream("src/test/resources/testing.graph");
+		file = new FileInputStream("src/test/resources/testing.graph");
 		testGraph = ParseGraph.parseGraph(file);
 		file = new FileInputStream("src/test/resources/testing.graph");
 		testGraphToProcess = ParseGraph.parseGraph(file);
 		file = new FileInputStream("src/test/resources/testing.graph");
 		testGraphNormal = ParseGraph.parseAlgsGraph(file);
 		file = new FileInputStream("src/test/resources/testing.graph");
-		ContractionHierarchyPreprocessor.writeAugmentedGraphToFile("src/test/resources/testing.graph", "src/test/resources/testing_augmented.graph");
+		ContractionHierarchyPreprocessor.writeAugmentedGraphToFile("src/test/resources/testing.graph",
+				"src/test/resources/testing_augmented.graph");
 		file = new FileInputStream("src/test/resources/testing_augmented.graph");
 		testAugmentedGraph = ParseGraphAugmented.parseAugmentedGraph(file);
 		file = new FileInputStream("src/test/resources/testing_augmented.graph");
@@ -72,7 +79,6 @@ public class ShortestPathTest {
 		Assertions.assertThat(testGraph.E()).isEqualTo(m);
 	}
 
-
 	/**
 	 * Contraction hierarchy solution relies on correct equality operation.
 	 * Edge equality is symmetric and only considered from-to node pairs.
@@ -93,7 +99,8 @@ public class ShortestPathTest {
 
 	@Example
 	void graphContainsSymmetricEdges_whenParsedFromFile() {
-		// These edges are not in the file, but they should be true because of symmetric .equals()
+		// These edges are not in the file, but they should be true because of symmetric
+		// .equals()
 		Assertions.assertThat(testGraph.containsEdge(new Edge(1, 0, 0.0, false))).isTrue();
 		Assertions.assertThat(testGraph.containsEdge(new Edge(3, 0, 0.0, false))).isTrue();
 		Assertions.assertThat(testGraph.containsEdge(new Edge(2, 1, 0.0, false))).isTrue();
@@ -166,13 +173,42 @@ public class ShortestPathTest {
 		Assertions.assertThat(distinctRanks).isPositive();
 	}
 
+	// @Example
+	// public void testContractNodeCreatesShortcutWhenNoWitnessPath() {
+	// 	// Arrange: Set up a node with two adjacent nodes requiring a shortcut
+	// 	int node = 2;
+	// 	Edge edge1 = new Edge(node, 3, 1.0, false);
+	// 	Edge edge2 = new Edge(node, 1, 4.0, false);
+	// 	Edge shortcut = new Edge(1, 3, 5.0, true);
+
+	// 	Bag<Edge> adjacentEdges = new Bag<>();
+	// 	adjacentEdges.add(edge1);
+	// 	adjacentEdges.add(edge2);
+
+	// 	for( Edge e : adjacentEdges ) {
+	// 		// testGraph has same adjacentEdges as our example
+	// 		Assertions.assertThat(testGraph.getAdjacentEdges(node)).contains(e);
+	// 	}
+
+	// 	// Asserts that shortcut has been added in the augmentedGraph
+	// 	Assertions.assertThat(testAugmentedGraph.allEdges()).contains(shortcut);
+
+	// 	int countShortcuts = 0;
+	// 	for(Edge e : testAugmentedGraph.allEdges()) {
+	// 		countShortcuts++;
+	// 	}
+
+	// 	Assertions.assertThat(countShortcuts).isEqualTo(10);
+	// }
+
 	@Provide
 	Arbitrary<Edge> shortcutProvider() {
 		return Arbitraries.of(testAugmentedGraph.allEdges()).filter(Edge::isShortcut);
 	}
 
 	@Property
-	void dijkstraWithEarlyStopping_hasCorrectShortestPath(@ForAll("randomSourceTargetPairProvider") Pair<Integer, Integer> sourceTarget) {
+	void dijkstraWithEarlyStopping_hasCorrectShortestPath(
+			@ForAll("randomSourceTargetPairProvider") Pair<Integer, Integer> sourceTarget) {
 		int s = sourceTarget.getLeft();
 		int t = sourceTarget.getRight();
 		DijkstraEarlyStopping earlyStopping = new DijkstraEarlyStopping(testGraph, s, t);
@@ -181,7 +217,8 @@ public class ShortestPathTest {
 	}
 
 	@Property
-	void dijkstraBidirectional_hasCorrectShortestPath(@ForAll("randomSourceTargetPairProvider") Pair<Integer, Integer> sourceTarget) {
+	void dijkstraBidirectional_hasCorrectShortestPath(
+			@ForAll("randomSourceTargetPairProvider") Pair<Integer, Integer> sourceTarget) {
 		int s = sourceTarget.getLeft();
 		int t = sourceTarget.getRight();
 		DijkstraBidirectional bidirectional = new DijkstraBidirectional(testGraph, s, t);
@@ -190,7 +227,8 @@ public class ShortestPathTest {
 	}
 
 	@Property
-	void dijkstraContractionQuery_hasCorrectShortestPath(@ForAll("randomSourceTargetPairProvider") Pair<Integer, Integer> sourceTarget) {
+	void dijkstraContractionQuery_hasCorrectShortestPath(
+			@ForAll("randomSourceTargetPairProvider") Pair<Integer, Integer> sourceTarget) {
 		int s = sourceTarget.getLeft();
 		int t = sourceTarget.getRight();
 		DijkstraBidirectional contractionQuery = new DijkstraBidirectional(testAugmentedGraph, s, t);
@@ -214,7 +252,8 @@ public class ShortestPathTest {
 
 	@Example
 	void nodeRank_isCalculatedCorrectly() throws Exception {
-		// Test execution order may effect when a preprocessor mutates the internal graph of the preprocessor
+		// Test execution order may effect when a preprocessor mutates the internal
+		// graph of the preprocessor
 		// Init a new one for each test execution. Messy, but it works :)
 		file = new FileInputStream("src/test/resources/testing.graph");
 		testGraphToProcess = ParseGraph.parseGraph(file);
@@ -249,11 +288,11 @@ public class ShortestPathTest {
 				.map(tuple -> Tuple.of(tuple.get1().weight(), tuple.get2().weight()));
 	}
 
-
 	@Provide
 	Arbitrary<Pair<Integer, Integer>> randomSourceTargetPairProvider() {
 		return Arbitraries.integers()
 				.between(0, n - 1)
 				.flatMap(s -> Arbitraries.integers().between(0, n - 1).map(t -> Pair.create(s, t)));
 	}
+
 }

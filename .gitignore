@@ -6,6 +6,7 @@ build
 
 .idea
 
+*.class
 *.csv
 *.tex
 *.png

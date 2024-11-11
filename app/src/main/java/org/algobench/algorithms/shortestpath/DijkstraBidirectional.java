@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
-
 public class DijkstraBidirectional {
     private double[] distS;
     private double[] distT;
@@ -131,15 +130,15 @@ public class DijkstraBidirectional {
         return d;
     }
 
-
     public boolean hasPathTo(int v) {
         return distS[v] < Double.POSITIVE_INFINITY;
     }
 
     public static void main(String[] args) {
-        try (FileInputStream fis = new FileInputStream("/Users/christiannielsen/Library/CloudStorage/Dropbox/dev/repo/algobench/app/src/test/resources/testing_augmented.graph")) {
+        try (FileInputStream fis = new FileInputStream(
+                "/Users/mathiasfaberkristiansen/Projects/ITU - new/Applied-algorithms/algobench/denmark_processed.graph")) {
             EdgeWeightedGraph graph = ParseGraphAugmented.parseAugmentedGraph(fis);
-            int n = 1000;
+            int n = 10;
             Random random = new Random(12345);
             Pair[] pairs;
             pairs = new Pair[n];
@@ -148,16 +147,16 @@ public class DijkstraBidirectional {
             }
 
             long sumRelaxedEdges = 0;
-            long before = System.currentTimeMillis();
             for (int i = 0; i < pairs.length; i++) {
                 int s = (int) pairs[i].getLeft();
                 int t = (int) pairs[i].getRight();
+                long before = System.currentTimeMillis();
                 DijkstraBidirectional path = new DijkstraBidirectional(graph, s, t);
-                sumRelaxedEdges += path.getCountRelaxedEdges();
+                long after = System.currentTimeMillis();
+                sumRelaxedEdges = path.getCountRelaxedEdges();
+                System.out.println("Time taken: " + ((after - before)) + "ms per " + s + " - " + t + " search, Relaxed: " + sumRelaxedEdges / n + " relaxed edges");
+                sumRelaxedEdges = 0;
             }
-            long after = System.currentTimeMillis();
-            System.out.println("Time taken: " + ((after - before)) + "ms per (s,t) search");
-            System.out.println("Relaxed: " + sumRelaxedEdges + " relaxed edges");
         } catch (IOException e) {
             e.printStackTrace();
         }

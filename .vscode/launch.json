@@ -6,6 +6,27 @@
     "configurations": [
         {
             "type": "java",
+            "name": "DijkstraContractionQuery",
+            "request": "launch",
+            "mainClass": "org.algobench.algorithms.shortestpath.DijkstraContractionQuery",
+            "projectName": "app"
+        },
+        {
+            "type": "java",
+            "name": "DijkstraBidirectional",
+            "request": "launch",
+            "mainClass": "org.algobench.algorithms.shortestpath.DijkstraBidirectional",
+            "projectName": "app"
+        },
+        {
+            "type": "java",
+            "name": "ContractionHierarchyPreprocessor",
+            "request": "launch",
+            "mainClass": "org.algobench.algorithms.shortestpath.ContractionHierarchyPreprocessor",
+            "projectName": "app"
+        },
+        {
+            "type": "java",
             "name": "Current File",
             "request": "launch",
             "mainClass": "${file}"

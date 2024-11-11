@@ -21,33 +21,42 @@ public class LocalSearch {
 
     public boolean hasWitnessPath(EdgeWeightedGraph graph, int source, int target, int excluded, double sumWeight) {
         int settledCount = 0;
-
+        int countRelaxed = 0;
         this.distTo[source] = 0.0;
-        currentEpoch++;
+        boolean foundTarget = false;
+        double shortestPathToTarget = Double.POSITIVE_INFINITY;
 
+        currentEpoch++;
         this.pq.insert(source, 0.0);
 
-        while (!this.pq.isEmpty() && settledCount < 5) {
+        while (!this.pq.isEmpty()) {
             int v = this.pq.delMin();
             settledCount++;
 
-            if (source == excluded) {
-                throw new IllegalArgumentException("Source excluded");
+            if (v == target) {
+                foundTarget = true;
             }
 
-            if (distTo(v) > sumWeight) {
+            if (foundTarget && shortestPathToTarget < distTo[v]) {
                 break;
             }
 
-	        for (Edge e : graph.adj(v)) {
-		        if (e.other(v) != excluded) {
-			        this.relax(e, v);
-		        }
-	        }
+            // Relax all edges for the current node, excluding edges to the 'excluded' node
+            for (Edge e : graph.adj(v)) {
+                int w = e.other(v);
+                if (w != excluded) {
+                    countRelaxed++;
+                    this.relax(e, v);
+                }
+            }
+            if (foundTarget)
+                shortestPathToTarget = distTo[v];
+
         }
 
         emptyQueue();
-        return distTo[target] <= sumWeight;
+        // System.out.println("Relaxed edges: " + countRelaxed);
+        return foundTarget && shortestPathToTarget < sumWeight;
     }
 
     private void init() {
@@ -56,6 +65,7 @@ public class LocalSearch {
 
         for (int v = 0; v < graph.V(); v++) {
             this.distTo[v] = Double.POSITIVE_INFINITY;
+            this.epoch[v] = 0;
         }
 
         this.pq = new IndexMinPQ<>(graph.V());
@@ -63,7 +73,7 @@ public class LocalSearch {
 
     private void relax(Edge e, int v) {
         int w = e.other(v);
-        if (this.epoch[w] != currentEpoch) {
+        if (epoch[w] != currentEpoch) {
             distTo[w] = Double.POSITIVE_INFINITY;
             epoch[w] = currentEpoch;
         }
@@ -85,11 +95,11 @@ public class LocalSearch {
     }
 
     public double distTo(int v) {
+        if (epoch[v] != currentEpoch) {
+            distTo[v] = Double.POSITIVE_INFINITY;
+            epoch[v] = currentEpoch;
+        }
         return this.distTo[v];
-    }
-
-    public int[] getEpoch() {
-        return this.epoch;
     }
 
     public double[] getDistoTo() {
