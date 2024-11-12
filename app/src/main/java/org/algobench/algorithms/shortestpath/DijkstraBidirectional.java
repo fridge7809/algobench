@@ -13,8 +13,6 @@ public class DijkstraBidirectional {
     private double[] distS;
     private double[] distT;
     private double d;
-    private boolean[] settledL;
-    private boolean[] settledR;
 
     private Edge[] edgeToL;
     private Edge[] edgeToR;
@@ -35,8 +33,6 @@ public class DijkstraBidirectional {
         countRelaxedEdges = 0;
         this.distS = new double[graph.V()];
         this.distT = new double[graph.V()];
-        this.settledL = new boolean[graph.V()];
-        this.settledR = new boolean[graph.V()];
         this.edgeToL = new Edge[graph.V()];
         this.edgeToR = new Edge[graph.V()];
 

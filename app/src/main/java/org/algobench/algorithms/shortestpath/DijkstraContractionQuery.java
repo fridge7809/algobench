@@ -12,14 +12,13 @@ public class DijkstraContractionQuery {
 	private double[] distS;
 	private double[] distT;
 	private double d;
-	private boolean[] settledL;
-	private boolean[] settledR;
 
 	private Edge[] edgeToL;
 	private Edge[] edgeToR;
 	private IndexMinPQ<Double> pqUp;
 	private IndexMinPQ<Double> pqDown;
 	private long countRelaxedEdges;
+	private int[] contractionOrder;
 
 	public long getCountRelaxedEdges() {
 		return countRelaxedEdges;
@@ -34,8 +33,6 @@ public class DijkstraContractionQuery {
 		countRelaxedEdges = 0;
 		this.distS = new double[graph.V()];
 		this.distT = new double[graph.V()];
-		this.settledL = new boolean[graph.V()];
-		this.settledR = new boolean[graph.V()];
 		this.edgeToL = new Edge[graph.V()];
 		this.edgeToR = new Edge[graph.V()];
 
@@ -51,71 +48,62 @@ public class DijkstraContractionQuery {
 		this.pqDown = new IndexMinPQ<>(graph.V());
 		this.pqDown.insert(target, this.distT[target]);
 
+		contractionOrder = graph.getRanks();
+
 		d = Double.POSITIVE_INFINITY;
 
-		while (!pqUp.isEmpty() || !pqDown.isEmpty()) {
-			if (!pqUp.isEmpty() && !pqDown.isEmpty()) {
-				// Check if both directions can be terminated early
+		boolean rDirection = true; // true = up, false = down
+
+		while ((!this.pqUp.isEmpty() || !this.pqDown.isEmpty())) {
+
+			// Ensure pqUp and pqDown are non-empty before calling minKey()
+			if (!this.pqUp.isEmpty() && !this.pqDown.isEmpty()) {
 				if (d < Math.min(pqUp.minKey(), pqDown.minKey())) {
 					break;
 				}
-
-				// Choose the direction with the smaller minKey
-				if (pqUp.minKey() <= pqDown.minKey()) {
-					int u = pqUp.delMin();
-					if (settledR[u]) { // Early termination if the vertex is settled in both directions
-						d = Math.min(d, distS[u] + distT[u]);
-						break;
-					}
-					settleVertex(graph, u, true);
-				} else {
-					int u = pqDown.delMin();
-					if (settledL[u]) { // Early termination if the vertex is settled in both directions
-						d = Math.min(d, distS[u] + distT[u]);
-						break;
-					}
-					settleVertex(graph, u, false);
-				}
-			} else if (!pqUp.isEmpty()) {
-				int u = pqUp.delMin();
-				if (settledR[u]) {
-					d = Math.min(d, distS[u] + distT[u]);
-					break;
-				}
-				settleVertex(graph, u, true);
-			} else if (!pqDown.isEmpty()) {
-				int u = pqDown.delMin();
-				if (settledL[u]) {
-					d = Math.min(d, distS[u] + distT[u]);
-					break;
-				}
-				settleVertex(graph, u, false);
+			} else if (!this.pqUp.isEmpty() && d < pqUp.minKey()) {
+				break;
+			} else if (!this.pqDown.isEmpty() && d < pqDown.minKey()) {
+				break;
 			}
+
+			if (!this.pqUp.isEmpty()) {
+				rDirection = !rDirection;
+				int u = this.pqUp.delMin();
+				d = Math.min(d, this.distS[u] + this.distT[u]);
+				settleVertex(graph, u, !rDirection);
+			}
+
+			if (!this.pqDown.isEmpty()) {
+				rDirection = !rDirection;
+				int u = this.pqDown.delMin();
+				d = Math.min(d, this.distS[u] + this.distT[u]);
+				settleVertex(graph, u, !rDirection);
+			}
+
 		}
 	}
 
 	private void settleVertex(EdgeWeightedGraph graph, int vertex, boolean isUp) {
 		if (isUp) {
-			settledL[vertex] = true; // Mark vertex as settled for upward direction
 			for (Edge e : graph.adj(vertex)) {
-				if (graph.getRank(vertex) < graph.getRank(e.other(vertex))) {
+				if (contractionOrder[vertex] < contractionOrder[e.other(vertex)]) {
 					relax(e, vertex, true);
 				}
 			}
 		} else {
-			settledR[vertex] = true; // Mark vertex as settled for downward direction
 			for (Edge e : graph.adj(vertex)) {
-				if (graph.getRank(vertex) < graph.getRank(e.other(vertex))) {
+				if (contractionOrder[vertex] < contractionOrder[e.other(vertex)]) {
 					relax(e, vertex, false);
 				}
 			}
 		}
 	}
 
-	private void relax(Edge e, int v, boolean isUp) {
+	private void relax(Edge e, int v, boolean isLeft) {
 		int w = e.other(v);
 		countRelaxedEdges++;
-		if (isUp) {
+		if (isLeft) {
 			// Update distance to w if a shorter path is found
 			if (this.distS[w] > this.distS[v] + e.weight()) {
 				this.distS[w] = this.distS[v] + e.weight(); // Update distance based on edge weight
@@ -149,37 +137,45 @@ public class DijkstraContractionQuery {
 	}
 
 	public static void main(String[] args) {
+
 		try (FileInputStream fis = new FileInputStream(
 				"/Users/mathiasfaberkristiansen/Projects/ITU - new/Applied-algorithms/algobench/denmark_processed.graph")) {
 			EdgeWeightedGraph graph = ParseGraphAugmented.parseAugmentedGraph(fis);
 
-			DijkstraBidirectional bd = new DijkstraBidirectional(graph, 1, 100);
-			DijkstraContractionQuery path = new DijkstraContractionQuery(graph, 1, 100);
-			System.out.println("d: " + bd.distTo(100) + " relaxed:" + bd.getCountRelaxedEdges());
-			System.out.println("d: " + path.distTo(100) + " relaxed: " + path.getCountRelaxedEdges());
-			System.out.println(path.hasPathTo(1) + "   " + path.hasPathTo(100));
+	
+			int n = 10;
+			Random random = new Random(12345);
+			Pair[] pairs;
+			pairs = new Pair[n];
+			for (int i = 0; i < n; i++) {
+				pairs[i] = Pair.create(random.nextInt(0, graph.V()), random.nextInt(0,
+						graph.V()));
+			}
 
-			// int n = 1;
-			// Random random = new Random(12345);
-			// Pair[] pairs;
-			// pairs = new Pair[n];
-			// for (int i = 0; i < n; i++) {
-			// pairs[i] = Pair.create(random.nextInt(0, graph.V()), random.nextInt(0,
-			// graph.V()));
-			// }
-
-			// long sumRelaxedEdges = 0;
-			// for (int i = 0; i < pairs.length; i++) {
-			// int s = (int) pairs[i].getLeft();
-			// int t = (int) pairs[i].getRight();
-			// long before = System.currentTimeMillis();
-			// DijkstraContractionQuery path = new DijkstraContractionQuery(graph, s, t);
-			// long after = System.currentTimeMillis();
-			// sumRelaxedEdges = path.getCountRelaxedEdges();
-			// System.out.println("Relaxed: " + sumRelaxedEdges + " relaxed edges in time: "
-			// + ((after - before)) + " " + path.d);
-			// sumRelaxedEdges = 0;
-			// }
+			long sumRelaxedEdges1 = 0;
+			long sumRelaxedEdges2 = 0;
+			int averageTimeFaster = 0;
+			for (int i = 0; i < pairs.length; i++) {
+				int s = (int) pairs[i].getLeft();
+				int t = (int) pairs[i].getRight();
+				long before1 = System.currentTimeMillis();
+				DijkstraBidirectional bd = new DijkstraBidirectional(graph, s, t);
+				long after1 = System.currentTimeMillis();
+				long before2 = System.currentTimeMillis();
+				DijkstraContractionQuery path = new DijkstraContractionQuery(graph, s, t);
+				long after2 = System.currentTimeMillis();
+				sumRelaxedEdges1 = bd.getCountRelaxedEdges();
+				sumRelaxedEdges2 = path.getCountRelaxedEdges();
+				System.out.println("bd - Relaxed: " + sumRelaxedEdges1 + " relaxed edges in time: "
+						+ ((after1 - before1)) + " --------------->  " + bd.distTo(t));
+				System.out.println("ch - Relaxed: " + sumRelaxedEdges2 + " relaxed edges in time: "
+						+ ((after2 - before2)) + " --------------->  " + path.distTo(t));
+				averageTimeFaster += sumRelaxedEdges1/sumRelaxedEdges2;
+				System.out.println(sumRelaxedEdges1/sumRelaxedEdges2);
+				sumRelaxedEdges1 = 0;
+				sumRelaxedEdges2 = 0;
+			}
+			System.out.println(averageTimeFaster/10);
 			// long after = System.currentTimeMillis();
 			// System.out.println("Time taken: " + ((after - before)) + "ms per (s,t)
 			// search");

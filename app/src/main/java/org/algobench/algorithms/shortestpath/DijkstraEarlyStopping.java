@@ -34,7 +34,7 @@ public class DijkstraEarlyStopping {
 		}
 
 		this.distTo[source] = 0.0;
-		this.pq = new IndexMinPQ(graph.V());
+		this.pq = new IndexMinPQ<>(graph.V());
 		this.pq.insert(source, this.distTo[source]);
 
 		while (!this.pq.isEmpty()) {
@@ -42,7 +42,7 @@ public class DijkstraEarlyStopping {
 			if (v == target) {
 				break;
 			}
-			Iterator adjecentVerticyIterator = graph.adj(v).iterator();
+			Iterator<Edge> adjecentVerticyIterator = graph.adj(v).iterator();
 
 			while (adjecentVerticyIterator.hasNext()) {
 				Edge e = (Edge) adjecentVerticyIterator.next();

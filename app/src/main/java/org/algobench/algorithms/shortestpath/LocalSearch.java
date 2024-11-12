@@ -2,13 +2,13 @@ package org.algobench.algorithms.shortestpath;
 
 import edu.princeton.cs.algs4.IndexMinPQ;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Arrays;
 
 public class LocalSearch {
     private double[] distTo;
-    private Edge[] edgeTo;
     private IndexMinPQ<Double> pq;
+    private long countRelaxedEdges;
+
     private final EdgeWeightedGraph graph;
     private int[] epoch;
     private int currentEpoch;
@@ -19,11 +19,19 @@ public class LocalSearch {
         init();
     }
 
-    public boolean hasWitnessPath(EdgeWeightedGraph graph, int source, int target, int excluded, double sumWeight, boolean limitSettledNodes, int allowedHops) {
+    private void init() {
+        countRelaxedEdges = 0;
+        this.distTo = new double[graph.V()];
+        this.pq = new IndexMinPQ<>(graph.V());
+
+        Arrays.fill(distTo, Double.POSITIVE_INFINITY);
+    }
+
+    public boolean hasWitnessPath(EdgeWeightedGraph graph, int source, int target, int excluded, double sumWeight,
+            boolean limitSettledNodes, int allowedHops) {
         emptyQueue(); // clear the queue
         int settledCount = 0;
         this.distTo[source] = 0.0;
-        double shortestPathToTarget = Double.POSITIVE_INFINITY;
 
         currentEpoch++;
         this.pq.insert(source, 0.0);
@@ -32,15 +40,12 @@ public class LocalSearch {
         int hops = 0;
         double currentShortestPathToTarget = Double.POSITIVE_INFINITY;
 
-        /**
-         * Note: 
-         * We only want to have a settled nodes limit on the preliminary ranking stage, and no limit on actual contraction
-         * TODO: implement staged hop limits
-         */
         while (!this.pq.isEmpty() && hops < allowedHops) {
             int v = this.pq.delMin();
-            if(limitSettledNodes) settledCount++; // only increments if we want to limit settled nodes
-            if(settledCount>100) return true;
+            if (limitSettledNodes)
+                settledCount++; // only increments if we want to limit settled nodes
+            if (settledCount > 100)
+                return true;
 
             // Relax all edges for the current node, excluding edges to the 'excluded' node
             // and not using edges that are already visited
@@ -51,40 +56,24 @@ public class LocalSearch {
                 }
             }
 
-            // updates currentshortest path, if distTo target is found and lower than
-            // current
+            // updates currentshortest path, if distTo target is found and lower thancurrent
             if (distTo(target) < currentShortestPathToTarget)
                 currentShortestPathToTarget = distTo(target);
 
             // checks whether we found a path to target lower than sumweight AND makes sure
-            // that the distTo value for the current vertex we are checking are larger than
-            // sumWeight (early stopping)
+            // that the distTo value for the current vertex we are checking are larger
+            // than sumWeight (early stopping)
             if (currentShortestPathToTarget < sumWeight) {
                 return true;
             }
 
             if (currentShortestPathToTarget > sumWeight && distTo(v) > sumWeight) {
-                return false; // maybe??
+                break;
             }
-
-            // && distTo(v) > sumWeight?
-
             hops++;
         }
         // System.out.println("Relaxed edges: " + countRelaxed);
-        return shortestPathToTarget <= sumWeight;
-    }
-
-    private void init() {
-        this.distTo = new double[graph.V()];
-        this.edgeTo = new Edge[graph.V()];
-
-        for (int v = 0; v < graph.V(); v++) {
-            this.distTo[v] = Double.POSITIVE_INFINITY;
-            this.epoch[v] = 1;
-        }
-
-        this.pq = new IndexMinPQ<>(graph.V());
+        return distTo(target) <= sumWeight;
     }
 
     private void relax(Edge e, int v) {
@@ -99,7 +88,7 @@ public class LocalSearch {
         }
         if (this.distTo[w] > this.distTo[v] + e.weight()) {
             this.distTo[w] = this.distTo[v] + e.weight();
-            this.edgeTo[w] = e;
+            // this.edgeTo[w] = edgeTo[w] = e;
             if (this.pq.contains(w)) {
                 this.pq.decreaseKey(w, this.distTo[w]);
             } else {
