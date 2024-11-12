@@ -19,7 +19,7 @@ public class LocalSearch {
         init();
     }
 
-    public boolean hasWitnessPath(EdgeWeightedGraph graph, int source, int target, int excluded, double sumWeight) {
+    public boolean hasWitnessPath(EdgeWeightedGraph graph, int source, int target, int excluded, double sumWeight, boolean limitSettledNodes, int allowedHops) {
         emptyQueue(); // clear the queue
         int settledCount = 0;
         this.distTo[source] = 0.0;
@@ -33,12 +33,14 @@ public class LocalSearch {
         double currentShortestPathToTarget = Double.POSITIVE_INFINITY;
 
         /**
-         * Refac idea:
-         * - keep track of currentShortestPathToTarget (init to double positive infinty)
-         * - check whether distTo(target)
+         * Note: 
+         * We only want to have a settled nodes limit on the preliminary ranking stage, and no limit on actual contraction
+         * TODO: implement staged hop limits
          */
-        while (!this.pq.isEmpty() && settledCount < 50 && hops == 0) {
+        while (!this.pq.isEmpty() && hops < allowedHops) {
             int v = this.pq.delMin();
+            if(limitSettledNodes) settledCount++; // only increments if we want to limit settled nodes
+            if(settledCount>100) return true;
 
             // Relax all edges for the current node, excluding edges to the 'excluded' node
             // and not using edges that are already visited
@@ -48,8 +50,6 @@ public class LocalSearch {
                     this.relax(e, v);
                 }
             }
-
-            settledCount++;
 
             // updates currentshortest path, if distTo target is found and lower than
             // current

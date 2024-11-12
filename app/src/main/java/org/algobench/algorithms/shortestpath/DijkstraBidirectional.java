@@ -137,10 +137,10 @@ public class DijkstraBidirectional {
     public static void main(String[] args) {
         try (FileInputStream fis = new FileInputStream(
                 "/Users/mathiasfaberkristiansen/Projects/ITU - new/Applied-algorithms/algobench/denmark_processed.graph")) {
-            EdgeWeightedGraph originalGraph = ParseGraph.parseGraph(fis);
+            //EdgeWeightedGraph originalGraph = ParseGraph.parseGraph(fis);
             EdgeWeightedGraph graph = ParseGraphAugmented.parseAugmentedGraph(fis);
 
-            int n = 10;
+            int n = 1;
             Random random = new Random(12345);
             Pair[] pairs;
             pairs = new Pair[n];
@@ -148,18 +148,33 @@ public class DijkstraBidirectional {
                 pairs[i] = Pair.create(random.nextInt(0, graph.V()), random.nextInt(0, graph.V()));
             }
 
-            long sumRelaxedEdges = 0;
+            long sumRelaxedEdges1 = 0;
+            long sumRelaxedEdges2 = 0;
+
             for (int i = 0; i < pairs.length; i++) {
                 int s = (int) pairs[i].getLeft();
                 int t = (int) pairs[i].getRight();
-                long before = System.currentTimeMillis();
+                long before1 = System.currentTimeMillis();
                 DijkstraBidirectional path = new DijkstraBidirectional(graph, s, t);
-                DijkstraEarlyStopping path1 = new DijkstraEarlyStopping(originalGraph, s, t);
-                System.out.println(path.distTo(t) + " - " + path1.distTo(t));
-                long after = System.currentTimeMillis();
-                sumRelaxedEdges = path.getCountRelaxedEdges();
-                System.out.println("Time taken: " + ((after - before)) + "ms per " + s + " - " + t + " search, Relaxed: " + sumRelaxedEdges / n + " relaxed edges");
-                sumRelaxedEdges = 0;
+                long after1 = System.currentTimeMillis();
+                sumRelaxedEdges1 = path.getCountRelaxedEdges();
+
+                // long before2 = System.currentTimeMillis();
+                // DijkstraEarlyStopping path1 = new DijkstraEarlyStopping(originalGraph, s, t);
+                // long after2 = System.currentTimeMillis();
+
+                long before3 = System.currentTimeMillis();
+                DijkstraContractionQuery path3 = new DijkstraContractionQuery(graph, s, t);
+                long after3 = System.currentTimeMillis();
+                sumRelaxedEdges2 = path3.getCountRelaxedEdges();
+                //sumRelaxedEdges = path.getCountRelaxedEdges();
+                System.out.println("t bidijk: " + (after1 - before1) + " shortest: " + path.d + " relaxed: " + sumRelaxedEdges1);
+                //System.out.println("t dijk" + (after2 - before2) + " shortest: " + path1.distTo(t));
+                System.out.println("t chdijk: " + (after3 - before3) + " shortest: " + path3.distTo(t) + " relaxed: " + sumRelaxedEdges2);
+
+                //System.out.println("Time taken: " + ((after - before)) + "ms per " + s + " - " + t + " search, Relaxed: " + sumRelaxedEdges / n + " relaxed edges");
+                sumRelaxedEdges1 = 0;
+                sumRelaxedEdges2 = 0;
             }
         } catch (IOException e) {
             e.printStackTrace();

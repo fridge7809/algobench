@@ -10,7 +10,6 @@ import java.util.Scanner;
 
 public class ParseGraphAugmented {
 
-
 	public static EdgeWeightedGraph parseAugmentedGraph(InputStream inputStream) throws IOException {
 		Scanner scanner = new Scanner(inputStream);
 		int n = scanner.nextInt();
@@ -24,22 +23,18 @@ public class ParseGraphAugmented {
 		}
 		EdgeWeightedGraph graph = new EdgeWeightedGraph(n, ranks);
 		for (int i = 0; i < m; i++) {
-			String line = scanner.nextLine();
-			String[] tokens = line.split(" ");
-			String[] fromTo = tokens[0].split("-");
-			int from = Integer.parseInt(fromTo[0].trim());
-			int to = Integer.parseInt(fromTo[1].trim());
-			Integer weight = Integer.parseInt(tokens[1].replaceAll(",", ""));
-			weight = weight / 100000;
-			String shortcut = tokens[2];
-			boolean isShortcut = !shortcut.contains("-");
-			Edge edge = new Edge(from, to, weight, false, isShortcut);
+			int from = (int) scanner.nextLong();
+			int to = (int) scanner.nextLong();
+			long weight = scanner.nextInt();
+			boolean contracted = scanner.next().equals("1");
+			Edge edge = new Edge(from, to, weight, false, contracted);
 			graph.addEdge(edge);
 		}
 		return graph;
 	}
 
-	public static edu.princeton.cs.algs4.EdgeWeightedGraph parseAugmentedAlgsGraph(InputStream inputStream) throws IOException {
+	public static edu.princeton.cs.algs4.EdgeWeightedGraph parseAugmentedAlgsGraph(InputStream inputStream)
+			throws IOException {
 		Scanner scanner = new Scanner(inputStream);
 		int n = scanner.nextInt();
 		int m = scanner.nextInt();
@@ -64,11 +59,10 @@ public class ParseGraphAugmented {
 		return graph;
 	}
 
-
-
 	public static void main(String[] args) {
 		try {
-			EdgeWeightedGraph graph = ParseGraphAugmented.parseAugmentedGraph(new FileInputStream("denmark_processed.graph"));
+			EdgeWeightedGraph graph = ParseGraphAugmented
+					.parseAugmentedGraph(new FileInputStream("denmark_processed.graph"));
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
