@@ -20,43 +20,59 @@ public class LocalSearch {
     }
 
     public boolean hasWitnessPath(EdgeWeightedGraph graph, int source, int target, int excluded, double sumWeight) {
+        emptyQueue(); // clear the queue
         int settledCount = 0;
-        int countRelaxed = 0;
         this.distTo[source] = 0.0;
-        boolean foundTarget = false;
         double shortestPathToTarget = Double.POSITIVE_INFINITY;
 
         currentEpoch++;
         this.pq.insert(source, 0.0);
+        this.epoch[source] = currentEpoch;
 
-        while (!this.pq.isEmpty()) {
+        int hops = 0;
+        double currentShortestPathToTarget = Double.POSITIVE_INFINITY;
+
+        /**
+         * Refac idea:
+         * - keep track of currentShortestPathToTarget (init to double positive infinty)
+         * - check whether distTo(target)
+         */
+        while (!this.pq.isEmpty() && settledCount < 50 && hops == 0) {
             int v = this.pq.delMin();
-            settledCount++;
-
-            if (v == target) {
-                foundTarget = true;
-            }
-
-            if (foundTarget && shortestPathToTarget < distTo[v]) {
-                break;
-            }
 
             // Relax all edges for the current node, excluding edges to the 'excluded' node
+            // and not using edges that are already visited
             for (Edge e : graph.adj(v)) {
                 int w = e.other(v);
-                if (w != excluded) {
-                    countRelaxed++;
+                if (w != excluded && !e.visited()) {
                     this.relax(e, v);
                 }
             }
-            if (foundTarget)
-                shortestPathToTarget = distTo[v];
 
+            settledCount++;
+
+            // updates currentshortest path, if distTo target is found and lower than
+            // current
+            if (distTo(target) < currentShortestPathToTarget)
+                currentShortestPathToTarget = distTo(target);
+
+            // checks whether we found a path to target lower than sumweight AND makes sure
+            // that the distTo value for the current vertex we are checking are larger than
+            // sumWeight (early stopping)
+            if (currentShortestPathToTarget < sumWeight) {
+                return true;
+            }
+
+            if (currentShortestPathToTarget > sumWeight && distTo(v) > sumWeight) {
+                return false; // maybe??
+            }
+
+            // && distTo(v) > sumWeight?
+
+            hops++;
         }
-
-        emptyQueue();
         // System.out.println("Relaxed edges: " + countRelaxed);
-        return foundTarget && shortestPathToTarget < sumWeight;
+        return shortestPathToTarget <= sumWeight;
     }
 
     private void init() {
@@ -65,7 +81,7 @@ public class LocalSearch {
 
         for (int v = 0; v < graph.V(); v++) {
             this.distTo[v] = Double.POSITIVE_INFINITY;
-            this.epoch[v] = 0;
+            this.epoch[v] = 1;
         }
 
         this.pq = new IndexMinPQ<>(graph.V());
@@ -76,6 +92,10 @@ public class LocalSearch {
         if (epoch[w] != currentEpoch) {
             distTo[w] = Double.POSITIVE_INFINITY;
             epoch[w] = currentEpoch;
+        }
+        if (epoch[v] != currentEpoch) {
+            distTo[v] = Double.POSITIVE_INFINITY;
+            epoch[v] = currentEpoch;
         }
         if (this.distTo[w] > this.distTo[v] + e.weight()) {
             this.distTo[w] = this.distTo[v] + e.weight();

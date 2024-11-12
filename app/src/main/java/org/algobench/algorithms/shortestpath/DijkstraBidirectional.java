@@ -1,5 +1,6 @@
 package org.algobench.algorithms.shortestpath;
 
+import edu.princeton.cs.algs4.DijkstraUndirectedSP;
 import edu.princeton.cs.algs4.IndexMinPQ;
 import org.graalvm.collections.Pair;
 
@@ -77,9 +78,8 @@ public class DijkstraBidirectional {
 
             if (!this.pqDown.isEmpty()) {
                 rDirection = !rDirection;
-                int u = this.pqDown.minIndex();
+                int u = this.pqDown.delMin();
                 d = Math.min(d, this.distS[u] + this.distT[u]);
-                this.pqDown.delMin();
                 settleVertex(graph, u, !rDirection);
             }
 
@@ -137,7 +137,9 @@ public class DijkstraBidirectional {
     public static void main(String[] args) {
         try (FileInputStream fis = new FileInputStream(
                 "/Users/mathiasfaberkristiansen/Projects/ITU - new/Applied-algorithms/algobench/denmark_processed.graph")) {
+            EdgeWeightedGraph originalGraph = ParseGraph.parseGraph(fis);
             EdgeWeightedGraph graph = ParseGraphAugmented.parseAugmentedGraph(fis);
+
             int n = 10;
             Random random = new Random(12345);
             Pair[] pairs;
@@ -152,6 +154,8 @@ public class DijkstraBidirectional {
                 int t = (int) pairs[i].getRight();
                 long before = System.currentTimeMillis();
                 DijkstraBidirectional path = new DijkstraBidirectional(graph, s, t);
+                DijkstraEarlyStopping path1 = new DijkstraEarlyStopping(originalGraph, s, t);
+                System.out.println(path.distTo(t) + " - " + path1.distTo(t));
                 long after = System.currentTimeMillis();
                 sumRelaxedEdges = path.getCountRelaxedEdges();
                 System.out.println("Time taken: " + ((after - before)) + "ms per " + s + " - " + t + " search, Relaxed: " + sumRelaxedEdges / n + " relaxed edges");

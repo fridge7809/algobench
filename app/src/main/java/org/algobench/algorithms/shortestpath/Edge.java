@@ -12,10 +12,10 @@ public class Edge implements Comparable<Edge> {
 	private final int v;
 	private final int w;
 	private final double weight;
+	private boolean visited;
 	private final boolean isShortcut;
 
-	public Edge(int v, int w, double weight, boolean isShortcut) {
-		this.isShortcut = isShortcut;
+	public Edge(int v, int w, double weight, boolean visited, boolean isShortcut) {
 		if (v < 0) {
 			throw new IllegalArgumentException("vertex index must be a non-negative integer");
 		} else if (w < 0) {
@@ -23,16 +23,20 @@ public class Edge implements Comparable<Edge> {
 		} else if (Double.isNaN(weight)) {
 			throw new IllegalArgumentException("Weight is NaN");
 		} else {
-			// Ensure symmetric pairs
-			if (v > w) {
-				this.v = v;
-				this.w = w;
-			} else {
-				this.v = w;
-				this.w = v;
-			}
+			this.v = v;
+			this.w = w;
 			this.weight = weight;
+			this.visited = visited;
+			this.isShortcut = isShortcut;
 		}
+	}
+
+	public void visit(){
+		this.visited = true;
+	}
+
+	public boolean visited (){
+		return this.visited;
 	}
 
 	public double weight() {
@@ -73,7 +77,8 @@ public class Edge implements Comparable<Edge> {
 	}
 
 	/**
-	 * Instead of hashcode, we need some other way of comparing whether 2 edges are the same
+	 * Instead of hashcode, we need some other way of comparing whether 2 edges are
+	 * the same
 	 */
 	@Override
 	public int hashCode() {
@@ -83,7 +88,7 @@ public class Edge implements Comparable<Edge> {
 	}
 
 	public static void main(String[] args) {
-		Edge e = new Edge(12, 34, 5.67, false);
+		Edge e = new Edge(12, 34, 5.67, false, false);
 		StdOut.println(e);
 	}
 

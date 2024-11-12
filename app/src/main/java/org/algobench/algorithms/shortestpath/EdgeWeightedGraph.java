@@ -10,12 +10,16 @@ import edu.princeton.cs.algs4.StdRandom;
 import java.util.*;
 import java.util.stream.IntStream;
 
+import org.graalvm.collections.Pair;
+
 public class EdgeWeightedGraph {
 	private static final String NEWLINE = System.getProperty("line.separator");
 	private final int V;
 	private int E;
 	private Bag<Edge>[] adj;
 	private int[] ranks;
+	private HashMap<Integer, Pair<Double, Double>> coords;
+
 
 	public EdgeWeightedGraph(int V, int[] ranks) {
 		this(V);
@@ -35,6 +39,13 @@ public class EdgeWeightedGraph {
 			}
 		}
 		this.ranks = new int[V];
+	}
+
+	public void setCoords(HashMap<Integer, Pair<Double, Double>> coords) {
+		this.coords = coords;
+	}
+	public HashMap<Integer, Pair<Double, Double>> getCoords() {
+		return coords;
 	}
 
 	private boolean containsEdgeLoop(Edge e) {
@@ -74,7 +85,7 @@ public class EdgeWeightedGraph {
 				int v = StdRandom.uniformInt(V);
 				int w = StdRandom.uniformInt(V);
 				double weight = 0.01 * (double)StdRandom.uniformInt(0, 100);
-				Edge e = new Edge(v, w, weight, false);
+				Edge e = new Edge(v, w, weight, false, false);
 				this.addEdge(e);
 			}
 		}
@@ -90,7 +101,7 @@ public class EdgeWeightedGraph {
 				int v = StdRandom.uniformInt(V);
 				int w = StdRandom.uniformInt(V);
 				double weight = 0.01 * (double)StdRandom.uniformInt(0, 100);
-				Edge e = new Edge(v, w, weight, false);
+				Edge e = new Edge(v, w, weight, false, false);
 				this.addEdge(e);
 			}
 		}

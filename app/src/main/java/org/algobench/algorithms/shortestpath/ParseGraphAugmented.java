@@ -15,12 +15,13 @@ public class ParseGraphAugmented {
 		Scanner scanner = new Scanner(inputStream);
 		int n = scanner.nextInt();
 		int m = scanner.nextInt();
+		scanner.nextLine();
 		int[] ranks = new int[n];
 		for (int i = 0; i < n; i++) {
-			int id = scanner.nextInt();
-			ranks[id] = scanner.nextInt();
+			String[] tokens = scanner.nextLine().split(" ");
+			int id = Integer.parseInt(tokens[0]);
+			ranks[id] = Integer.parseInt(tokens[3]);
 		}
-		scanner.nextLine();
 		EdgeWeightedGraph graph = new EdgeWeightedGraph(n, ranks);
 		for (int i = 0; i < m; i++) {
 			String line = scanner.nextLine();
@@ -32,7 +33,7 @@ public class ParseGraphAugmented {
 			weight = weight / 100000;
 			String shortcut = tokens[2];
 			boolean isShortcut = !shortcut.contains("-");
-			Edge edge = new Edge(from, to, weight, isShortcut);
+			Edge edge = new Edge(from, to, weight, false, isShortcut);
 			graph.addEdge(edge);
 		}
 		return graph;
@@ -42,12 +43,13 @@ public class ParseGraphAugmented {
 		Scanner scanner = new Scanner(inputStream);
 		int n = scanner.nextInt();
 		int m = scanner.nextInt();
+		scanner.nextLine();
 		int[] ranks = new int[n];
 		for (int i = 0; i < n; i++) {
-			int id = scanner.nextInt();
-			ranks[id] = scanner.nextInt();
+			String[] tokens = scanner.nextLine().split(" ");
+			int id = Integer.parseInt(tokens[0]);
+			ranks[id] = Integer.parseInt(tokens[3]);
 		}
-		scanner.nextLine();
 		edu.princeton.cs.algs4.EdgeWeightedGraph graph = new edu.princeton.cs.algs4.EdgeWeightedGraph(n);
 		for (int i = 0; i < m; i++) {
 			String line = scanner.nextLine();
