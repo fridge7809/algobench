@@ -49,10 +49,9 @@ public class ParseGraphAugmented {
 		for (int i = 0; i < m; i++) {
 			String line = scanner.nextLine();
 			String[] tokens = line.split(" ");
-			String[] fromTo = tokens[0].split("-");
-			int from = Integer.parseInt(fromTo[0].trim());
-			int to = Integer.parseInt(fromTo[1].trim());
-			Double weight = Double.parseDouble(tokens[1].replaceAll(",", ""));
+			int from = Integer.parseInt(tokens[0].trim());
+			int to = Integer.parseInt(tokens[1].trim());
+			Double weight = Double.parseDouble(tokens[2]);
 			edu.princeton.cs.algs4.Edge edge = new edu.princeton.cs.algs4.Edge(from, to, weight);
 			graph.addEdge(edge);
 		}

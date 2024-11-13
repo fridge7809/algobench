@@ -56,18 +56,15 @@ public class DijkstraBidirectional {
 
             // Ensure pqUp and pqDown are non-empty before calling minKey()
             if (!this.pqUp.isEmpty() && !this.pqDown.isEmpty()) {
-                if (d < Math.min(pqUp.minKey(), pqDown.minKey())) {
+                if (d < pqUp.minKey() + pqDown.minKey()) {
                     break;
                 }
-            } else if (!this.pqUp.isEmpty() && d < pqUp.minKey()) {
-                break;
-            } else if (!this.pqDown.isEmpty() && d < pqDown.minKey()) {
-                break;
             }
 
             if (!this.pqUp.isEmpty()) {
                 rDirection = !rDirection;
                 int u = this.pqUp.delMin();
+
                 d = Math.min(d, this.distS[u] + this.distT[u]);
                 settleVertex(graph, u, !rDirection);
             }

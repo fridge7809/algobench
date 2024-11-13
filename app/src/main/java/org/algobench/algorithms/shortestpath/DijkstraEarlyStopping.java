@@ -9,7 +9,7 @@ public class DijkstraEarlyStopping {
 	private double[] distTo;
 	private Edge[] edgeTo;
 	private IndexMinPQ<Double> pq;
-	private static long countRelaxed;
+	private long countRelaxed;
 
 	public long getRelaxed() {
 		return countRelaxed;
@@ -55,7 +55,6 @@ public class DijkstraEarlyStopping {
 
 	private void relax(Edge e, int v) {
 		int w = e.other(v);
-		countRelaxed++;
 		if (this.distTo[w] > this.distTo[v] + e.weight()) {
 			this.distTo[w] = this.distTo[v] + e.weight();
 			this.edgeTo[w] = e;
