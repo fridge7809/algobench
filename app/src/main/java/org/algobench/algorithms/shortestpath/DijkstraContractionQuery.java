@@ -8,19 +8,17 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Random;
 
-
 public class DijkstraContractionQuery {
 	private double[] distS;
 	private double[] distT;
 	private double d;
-	private boolean[] settledL;
-	private boolean[] settledR;
 
 	private Edge[] edgeToL;
 	private Edge[] edgeToR;
 	private IndexMinPQ<Double> pqUp;
 	private IndexMinPQ<Double> pqDown;
 	private long countRelaxedEdges;
+	private int[] contractionOrder;
 
 	public long getCountRelaxedEdges() {
 		return countRelaxedEdges;
@@ -35,8 +33,6 @@ public class DijkstraContractionQuery {
 		countRelaxedEdges = 0;
 		this.distS = new double[graph.V()];
 		this.distT = new double[graph.V()];
-		this.settledL = new boolean[graph.V()];
-		this.settledR = new boolean[graph.V()];
 		this.edgeToL = new Edge[graph.V()];
 		this.edgeToR = new Edge[graph.V()];
 
@@ -51,6 +47,8 @@ public class DijkstraContractionQuery {
 		this.pqUp.insert(source, this.distS[source]);
 		this.pqDown = new IndexMinPQ<>(graph.V());
 		this.pqDown.insert(target, this.distT[target]);
+
+		contractionOrder = graph.getRanks();
 
 		d = Double.POSITIVE_INFINITY;
 
@@ -78,9 +76,8 @@ public class DijkstraContractionQuery {
 
 			if (!this.pqDown.isEmpty()) {
 				rDirection = !rDirection;
-				int u = this.pqDown.minIndex();
+				int u = this.pqDown.delMin();
 				d = Math.min(d, this.distS[u] + this.distT[u]);
-				this.pqDown.delMin();
 				settleVertex(graph, u, !rDirection);
 			}
 
@@ -90,13 +87,13 @@ public class DijkstraContractionQuery {
 	private void settleVertex(EdgeWeightedGraph graph, int vertex, boolean isUp) {
 		if (isUp) {
 			for (Edge e : graph.adj(vertex)) {
-				if (graph.getRank(vertex) < graph.getRank(e.other(vertex))) {
+				if (contractionOrder[vertex] < contractionOrder[e.other(vertex)]) {
 					relax(e, vertex, true);
 				}
 			}
 		} else {
 			for (Edge e : graph.adj(vertex)) {
-				if (graph.getRank(vertex) < graph.getRank(e.other(vertex))) {
+				if (contractionOrder[vertex] < contractionOrder[e.other(vertex)]) {
 					relax(e, vertex, false);
 				}
 			}
@@ -135,33 +132,54 @@ public class DijkstraContractionQuery {
 		return d;
 	}
 
-
 	public boolean hasPathTo(int v) {
 		return distS[v] < Double.POSITIVE_INFINITY;
 	}
 
 	public static void main(String[] args) {
-		try (FileInputStream fis = new FileInputStream("/Users/christiannielsen/Library/CloudStorage/Dropbox/dev/repo/algobench/app/src/test/resources/testing_augmented.graph")) {
+
+		try (FileInputStream fis = new FileInputStream(
+				"/Users/mathiasfaberkristiansen/Projects/ITU - new/Applied-algorithms/algobench/denmark_test_processed.graph")) {
 			EdgeWeightedGraph graph = ParseGraphAugmented.parseAugmentedGraph(fis);
-			int n = 1000;
+
+	
+			int n = 10;
 			Random random = new Random(12345);
 			Pair[] pairs;
 			pairs = new Pair[n];
 			for (int i = 0; i < n; i++) {
-				pairs[i] = Pair.create(random.nextInt(0, graph.V()), random.nextInt(0, graph.V()));
+				pairs[i] = Pair.create(random.nextInt(0, graph.V()), random.nextInt(0,
+						graph.V()));
 			}
 
-			long sumRelaxedEdges = 0;
-			long before = System.currentTimeMillis();
+			long sumRelaxedEdges1 = 0;
+			long sumRelaxedEdges2 = 0;
+			int averageTimeFaster = 0;
 			for (int i = 0; i < pairs.length; i++) {
 				int s = (int) pairs[i].getLeft();
 				int t = (int) pairs[i].getRight();
-				DijkstraBidirectional path = new DijkstraBidirectional(graph, s, t);
-				sumRelaxedEdges += path.getCountRelaxedEdges();
+				long before1 = System.currentTimeMillis();
+				DijkstraBidirectional bd = new DijkstraBidirectional(graph, s, t);
+				long after1 = System.currentTimeMillis();
+				long before2 = System.currentTimeMillis();
+				DijkstraContractionQuery path = new DijkstraContractionQuery(graph, s, t);
+				long after2 = System.currentTimeMillis();
+				sumRelaxedEdges1 = bd.getCountRelaxedEdges();
+				sumRelaxedEdges2 = path.getCountRelaxedEdges();
+				System.out.println("bd - Relaxed: " + sumRelaxedEdges1 + " relaxed edges in time: "
+						+ ((after1 - before1)) + " --------------->  " + bd.distTo(t));
+				System.out.println("ch - Relaxed: " + sumRelaxedEdges2 + " relaxed edges in time: "
+						+ ((after2 - before2)) + " --------------->  " + path.distTo(t));
+				averageTimeFaster += sumRelaxedEdges1/sumRelaxedEdges2;
+				System.out.println(sumRelaxedEdges1/sumRelaxedEdges2);
+				sumRelaxedEdges1 = 0;
+				sumRelaxedEdges2 = 0;
 			}
-			long after = System.currentTimeMillis();
-			System.out.println("Time taken: " + ((after - before)) + "ms per (s,t) search");
-			System.out.println("Relaxed: " + sumRelaxedEdges + " relaxed edges");
+			System.out.println(averageTimeFaster/10);
+			// long after = System.currentTimeMillis();
+			// System.out.println("Time taken: " + ((after - before)) + "ms per (s,t)
+			// search");
+			// System.out.println("Relaxed: " + sumRelaxedEdges + " relaxed edges");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -9,7 +9,7 @@ public class DijkstraEarlyStopping {
 	private double[] distTo;
 	private Edge[] edgeTo;
 	private IndexMinPQ<Double> pq;
-	private static long countRelaxed;
+	private long countRelaxed;
 
 	public long getRelaxed() {
 		return countRelaxed;
@@ -34,7 +34,7 @@ public class DijkstraEarlyStopping {
 		}
 
 		this.distTo[source] = 0.0;
-		this.pq = new IndexMinPQ(graph.V());
+		this.pq = new IndexMinPQ<>(graph.V());
 		this.pq.insert(source, this.distTo[source]);
 
 		while (!this.pq.isEmpty()) {
@@ -42,7 +42,7 @@ public class DijkstraEarlyStopping {
 			if (v == target) {
 				break;
 			}
-			Iterator adjecentVerticyIterator = graph.adj(v).iterator();
+			Iterator<Edge> adjecentVerticyIterator = graph.adj(v).iterator();
 
 			while (adjecentVerticyIterator.hasNext()) {
 				Edge e = (Edge) adjecentVerticyIterator.next();
@@ -55,7 +55,6 @@ public class DijkstraEarlyStopping {
 
 	private void relax(Edge e, int v) {
 		int w = e.other(v);
-		countRelaxed++;
 		if (this.distTo[w] > this.distTo[v] + e.weight()) {
 			this.distTo[w] = this.distTo[v] + e.weight();
 			this.edgeTo[w] = e;

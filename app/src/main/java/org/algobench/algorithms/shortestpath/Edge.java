@@ -1,8 +1,8 @@
 package org.algobench.algorithms.shortestpath;//
+
 // Source code recreated from a .class file by IntelliJ IDEA
 // (powered by FernFlower decompiler)
 //
-
 
 import java.util.Objects;
 
@@ -12,10 +12,10 @@ public class Edge implements Comparable<Edge> {
 	private final int v;
 	private final int w;
 	private final double weight;
+	private boolean visited;
 	private final boolean isShortcut;
 
-	public Edge(int v, int w, double weight, boolean isShortcut) {
-		this.isShortcut = isShortcut;
+	public Edge(int v, int w, double weight, boolean visited, boolean isShortcut) {
 		if (v < 0) {
 			throw new IllegalArgumentException("vertex index must be a non-negative integer");
 		} else if (w < 0) {
@@ -26,7 +26,17 @@ public class Edge implements Comparable<Edge> {
 			this.v = v;
 			this.w = w;
 			this.weight = weight;
+			this.visited = visited;
+			this.isShortcut = isShortcut;
 		}
+	}
+
+	public void visit(){
+		this.visited = true;
+	}
+
+	public boolean visited (){
+		return this.visited;
 	}
 
 	public double weight() {
@@ -57,13 +67,19 @@ public class Edge implements Comparable<Edge> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 
 		Edge edge = (Edge) o;
 		return (v == edge.v && w == edge.w) || (v == edge.w && w == edge.v);
 	}
 
+	/**
+	 * Instead of hashcode, we need some other way of comparing whether 2 edges are
+	 * the same
+	 */
 	@Override
 	public int hashCode() {
 		int sum = v + w;
@@ -72,7 +88,7 @@ public class Edge implements Comparable<Edge> {
 	}
 
 	public static void main(String[] args) {
-		Edge e = new Edge(12, 34, 5.67, false);
+		Edge e = new Edge(12, 34, 5.67, false, false);
 		StdOut.println(e);
 	}
 

@@ -8,48 +8,57 @@ import java.util.stream.IntStream;
 
 public class ContractionHierarchyPreprocessor {
 
-	private final Set<Edge> visitedEdges;
 	private final EdgeWeightedGraph graph;
 	private final LocalSearch localSearch;
-	private int[] rank = new int[0];
-	private final List<Integer> contractionOrder;
-	private final Set<Edge> shortcuts;
+	private int[] rank;
+	private final int[] contractionOrder;
+	private final EdgeContainer shortcuts;
 	private final int[] deletedNeighbors;
 	private PriorityQueue<Integer> contractionQueue;
 	private final NodeComparator nodeComparator;
+	private int nodeDegrees;
+	private int averageNodeDegree;
 
 	public ContractionHierarchyPreprocessor(EdgeWeightedGraph graph) {
 		this.graph = graph;
 		this.rank = new int[graph.V()];
-		this.shortcuts = HashSet.newHashSet(570193);
+		this.shortcuts = new EdgeContainer();
 		this.deletedNeighbors = new int[graph.V()];
-		this.visitedEdges = HashSet.newHashSet(graph.E());
 		this.localSearch = new LocalSearch(graph);
-		this.contractionOrder = new ArrayList<>(graph.V());
+		this.contractionOrder = new int[graph.V()];
 		this.contractionQueue = new PriorityQueue<>(graph.V(), new NodeComparator());
 		this.nodeComparator = new NodeComparator();
 	}
 
 	public static void main(String[] args) {
-		writeAugmentedGraphToFile("app/src/test/resources/denmark.graph", "denmark_processed.graph");
+		writeAugmentedGraphToFile("app/src/test/resources/denmark.graph", "denmark_test_processed.graph");
 	}
 
 	public static void writeAugmentedGraphToFile(String inputGraphPath, String outputGraphPath) {
-		try (FileInputStream fis = new FileInputStream(inputGraphPath); FileWriter fw = new FileWriter(outputGraphPath)) {
+		try (FileInputStream fis = new FileInputStream(inputGraphPath);
+				FileWriter fw = new FileWriter(outputGraphPath)) {
 			EdgeWeightedGraph graph = ParseGraph.parseGraph(fis);
 			ContractionHierarchyPreprocessor ch = new ContractionHierarchyPreprocessor(graph);
 			ch.preprocess();
-			System.out.println(ch.shortcuts.size());
 
 			// Format augmented graph
 			StringBuilder sb = new StringBuilder();
 			sb.append(ch.graph.V()).append(" ").append(ch.graph.E()).append("\n");
 
 			for (int i = 0; i < ch.graph.V(); i++) {
-				sb.append(i).append(" ").append(graph.getCoords().get(i).getLeft()).append(" ").append(graph.getCoords().get(i).getRight()).append(" ").append(ch.rank[i]).append("\n");
+				sb.append(i).append(" ").append(graph.getCoords().get(i).getLeft()).append(" ")
+						.append(graph.getCoords().get(i).getRight()).append(" ").append(ch.contractionOrder[i])
+						.append("\n");
 			}
 			for (Edge e : ch.graph.edges()) {
-				sb.append(e).append(e.isShortcut() ? " 1" : " -1").append("\n");
+				String[] fromto = e.toString().split("-");
+				Long from = Long.parseLong(fromto[0]);
+				Long to = Long.parseLong(fromto[1].split(" ")[0]);
+				Long isShortcut = Long.parseLong(e.isShortcut() ? "1" : "-1"); // "contracted"
+				int weight = (int) e.weight();
+
+				sb.append(from).append(" ").append(to).append(" ").append(weight).append(" ").append(isShortcut)
+						.append("\n");
 			}
 
 			fw.write(sb.toString());
@@ -58,39 +67,62 @@ public class ContractionHierarchyPreprocessor {
 		}
 	}
 
-	public int calculateRank(int node) {
-		int amountOfShortcuts = simulateContraction(node);
+	public int calculateRank(int node, boolean recalculate) {
+		int amountOfShortcuts;
+		if (recalculate)
+			amountOfShortcuts = totalReorderContractSimulation(node);
+		else
+			amountOfShortcuts = simulateContraction(node);
 		int edgeDifference = (amountOfShortcuts - graph.degree(node));
 		return edgeDifference + deletedNeighbors[node];
 	}
 
 	/**
-	 * Creates an initial node contraction ordering, then begins contraction process.
-	 * Lazy updates rank as it is contracting.
+	 * Creates an initial node contraction ordering, then begins actual contraction
+	 * process.
+	 * Lazy updates rank as it is contracting. When lazy updates has exceeded
+	 * lazyUpdatesLimit, entire pq is reranked.
 	 */
 	public int preprocess() {
 		long startTime = System.currentTimeMillis();
-		initNodeOrder();
 		System.out.println("Begin contraction");
+		initNodeOrder();
 		int lazyUpdates = 0;
-		int lazyUpdatesLimit = 5000;
+		int lazyUpdatesLimit = 25;
+		int contractedNodes = 0;
+		int totalShortcuts = 0;
+		boolean lastNode = false;
+		int i = 0; // Index of node / node id in contraction order
 
 		while (!contractionQueue.isEmpty()) {
 			int candidate = contractionQueue.poll();
 			int candidateRank = rank[candidate];
-			if (contractionQueue.peek() != null && calculateRank(contractionQueue.peek()) < candidateRank) {
-				rank[candidate] = calculateRank(candidate);
+			if (contractionQueue.peek() != null && calculateRank(contractionQueue.peek(), false) < candidateRank) {
+				rank[candidate] = calculateRank(candidate, false);
 				contractionQueue.add(candidate);
 				lazyUpdates++;
 				if (lazyUpdates > lazyUpdatesLimit) {
+					System.out.println("Updating entire PQ ...");
 					contractionQueue = updateAllPriorities();
-					System.out.println("reorder pq");
 					lazyUpdates = 0;
 				}
 			} else {
+				if (candidateRank > 50)
+					System.out.println(candidateRank);
 				rank[candidate] = candidateRank;
-				contractionOrder.add(candidate);
-				contractNode(candidate);
+				contractionOrder[candidate] = i;
+				i++;
+				contractedNodes++;
+				nodeDegrees += graph.degree(candidate);
+
+				contractNode(candidate, totalShortcuts, lastNode);
+
+				if (contractedNodes % 2000 == 0) {
+					averageNodeDegree = nodeDegrees / 2000;
+					nodeDegrees = 0;
+					System.out.println("Contracted Nodes: " + contractedNodes + " Shortcuts made " + shortcuts.size());
+				}
+				signalDeletionToNeighbours(candidate);
 			}
 		}
 		long endTime = System.currentTimeMillis();
@@ -99,10 +131,16 @@ public class ContractionHierarchyPreprocessor {
 		return shortcuts.size();
 	}
 
+	private void signalDeletionToNeighbours(int node) {
+		for (Edge edge : graph.getAdjacentEdges(node)) {
+			deletedNeighbors[edge.other(node)]++;
+		}
+	}
+
 	private PriorityQueue<Integer> updateAllPriorities() {
 		PriorityQueue<Integer> newQueue = new PriorityQueue<>(contractionQueue.size(), new NodeComparator());
 		for (int node : contractionQueue) {
-			rank[node] = calculateRank(node);
+			rank[node] = calculateRank(node, true);
 			newQueue.add(node);
 		}
 		return newQueue;
@@ -113,54 +151,80 @@ public class ContractionHierarchyPreprocessor {
 	 */
 	private void initNodeOrder() {
 		IntStream.range(0, graph.V()).forEach(i -> {
-			rank[i] = calculateRank(i);
+			rank[i] = calculateRank(i, false);
 			contractionQueue.add(i);
 		});
 	}
 
-	public int contractNode(int node) {
+	public int contractNode(int node, int totalShortcuts, boolean lastNode) {
 		Bag<Edge> adjacentEdges = graph.getAdjacentEdges(node);
 		Set<Edge> shortcutsCreated = new HashSet<>();
-
+		int countShortcutsCreated = 0;
+		int allowedHops = defineAllowedHops();
 		for (Edge j : adjacentEdges) {
 			for (Edge k : adjacentEdges) {
-				if (!k.equals(j)) {
-					int u = j.other(node);
-					int w = k.other(node);
-					double sumWeight = j.weight() + k.weight();
+				if (j.equals(k))
+					continue;
+				int u = j.other(node);
+				int w = k.other(node);
+				double sumWeight = j.weight() + k.weight();
 
-					if ((rank[u] > rank[w])) {
+				if (!j.visited() && !k.visited()) {
+					Edge shortcut = new Edge(u, w, sumWeight, false, true);
+					if (shortcutsCreated.contains(shortcut)) {
 						continue;
 					}
 
-					Edge shortcut = new Edge(u, w, sumWeight, true);
-					if (visitedEdges.contains(shortcut) || shortcutsCreated.contains(shortcut)) {
-						continue;
-					}
-
-					if (!localSearch.hasWitnessPath(graph, u, w, node, sumWeight)) {
+					if (!localSearch.hasWitnessPath(graph, u, w, node, sumWeight, true, allowedHops)) {
 						shortcutsCreated.add(shortcut);
-						shortcuts.add(shortcut);
 						graph.addEdge(shortcut);
+						shortcuts.addEdge(u, w);
+						countShortcutsCreated++;
+					}
+				}
+				if(shortcutsCreated.size() > 10) break;
+			}
+		}
+
+		for (Edge e : adjacentEdges) {
+			e.visit();
+		}
+
+		return countShortcutsCreated;
+	}
+
+	public int totalReorderContractSimulation(int node) {
+		Bag<Edge> adjacentEdges = graph.getAdjacentEdges(node);
+		Set<Edge> simulatedShortcuts = new HashSet<>();
+		int countShortcutsCreated = 0;
+		int allowedHops = defineAllowedHops();
+		for (Edge j : adjacentEdges) {
+			for (Edge k : adjacentEdges) {
+				if (j.equals(k))
+					continue;
+				int u = j.other(node);
+				int w = k.other(node);
+				double sumWeight = j.weight() + k.weight();
+
+				if (!j.visited() && !k.visited()) {
+					Edge shortcut = new Edge(u, w, sumWeight, false, true);
+					if (simulatedShortcuts.contains(shortcut)) {
+						continue;
+					}
+
+					if (countShortcutsCreated < 50
+							&& !localSearch.hasWitnessPath(graph, u, w, node, sumWeight, true, allowedHops)) {
+						simulatedShortcuts.add(shortcut);
 					}
 				}
 			}
 		}
-		for (Edge e : adjacentEdges) {
-			visitedEdges.add(e);
-			deletedNeighbors[e.other(node)]++;
-		}
-		return shortcutsCreated.size();
+		return simulatedShortcuts.size();
 	}
 
-	/**
-	 * An approximation for the number of shortcuts to add when contracting a node.
-	 * Uses Fast 1-hop local search to find witness paths.
-	 */
 	public int simulateContraction(int node) {
 		Bag<Edge> adjacentEdges = graph.getAdjacentEdges(node);
-		int shortcuts = 0;
-		int cost = 0;
+		Set<Edge> simulatedShortcuts = new HashSet<>();
 		for (Edge j : adjacentEdges) {
 			for (Edge k : adjacentEdges) {
 				if (!k.equals(j)) {
@@ -168,27 +232,45 @@ public class ContractionHierarchyPreprocessor {
 					int w = k.other(node);
 					double sumWeight = j.weight() + k.weight();
 
-					if (hasWitnessPath(u, w, sumWeight) == -1) {
-						shortcuts++;
+					if (!hasWitnessPath(u, w, sumWeight)) {
+						Edge shortcut = new Edge(u, w, sumWeight, false, true);
+						simulatedShortcuts.add(shortcut);
 					}
 				}
 			}
 		}
-		return shortcuts;
+		return simulatedShortcuts.size();
 	}
 
 	/**
-	 * Fast local 1-hop search for witness paths.
+	 * We want to allow only 5 hops when contracting the less important nodes, and
+	 * allow many hops when contracting the more important nodes.
 	 */
-	private int hasWitnessPath(int u, int w, double sumWeight) {
-		int counter = 0;
+
+	private int defineAllowedHops() {
+		int allowedHops = 5;
+		if (averageNodeDegree >= 3) {
+			allowedHops = 30;
+		}
+		if (averageNodeDegree >= 4) {
+			allowedHops = 50;
+		}
+		if (averageNodeDegree >= 5) {
+			allowedHops = 200;
+		}
+		return allowedHops;
+	}
+
+	/**
+	 * Fast local 1-hop search for witness paths. Only used for very first estimation
+	 */
+	private boolean hasWitnessPath(int u, int w, double sumWeight) {
 		for (Edge edge : graph.getAdjacentEdges(u)) {
-			counter++;
 			if (edge.other(u) == w && edge.weight() < sumWeight) {
-				return counter;
+				return true;
 			}
 		}
-		return -1;
+		return false;
 	}
 
 	public NodeComparator getNodeComparator() {
@@ -202,7 +284,7 @@ public class ContractionHierarchyPreprocessor {
 		}
 	}
 
-	public List<Integer> getContractionOrder() {
+	public int[] getContractionOrder() {
 		return contractionOrder;
 	}
 

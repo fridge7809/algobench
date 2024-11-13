@@ -2,13 +2,13 @@ package org.algobench.algorithms.shortestpath;
 
 import edu.princeton.cs.algs4.IndexMinPQ;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Arrays;
 
 public class LocalSearch {
     private double[] distTo;
-    private Edge[] edgeTo;
     private IndexMinPQ<Double> pq;
+    private long countRelaxedEdges;
+
     private final EdgeWeightedGraph graph;
     private int[] epoch;
     private int currentEpoch;
@@ -19,57 +19,77 @@ public class LocalSearch {
         init();
     }
 
-    public boolean hasWitnessPath(EdgeWeightedGraph graph, int source, int target, int excluded, double sumWeight) {
-        int settledCount = 0;
+    private void init() {
+        countRelaxedEdges = 0;
+        this.distTo = new double[graph.V()];
+        this.pq = new IndexMinPQ<>(graph.V());
 
-        this.distTo[source] = 0.0;
-        currentEpoch++;
-
-        this.pq.insert(source, 0.0);
-
-        while (!this.pq.isEmpty() && settledCount < 5) {
-            int v = this.pq.delMin();
-            settledCount++;
-
-            if (source == excluded) {
-                throw new IllegalArgumentException("Source excluded");
-            }
-
-            if (distTo(v) > sumWeight) {
-                break;
-            }
-
-	        for (Edge e : graph.adj(v)) {
-		        if (e.other(v) != excluded) {
-			        this.relax(e, v);
-		        }
-	        }
-        }
-
-        emptyQueue();
-        return distTo[target] <= sumWeight;
+        Arrays.fill(distTo, Double.POSITIVE_INFINITY);
     }
 
-    private void init() {
-        this.distTo = new double[graph.V()];
-        this.edgeTo = new Edge[graph.V()];
+    public boolean hasWitnessPath(EdgeWeightedGraph graph, int source, int target, int excluded, double sumWeight,
+            boolean limitSettledNodes, int allowedHops) {
+        emptyQueue(); // Should be empty, but clearing the queue to be sure
+        int settledCount = 0;
+        this.distTo[source] = 0.0;
 
-        for (int v = 0; v < graph.V(); v++) {
-            this.distTo[v] = Double.POSITIVE_INFINITY;
+        currentEpoch++;
+        this.pq.insert(source, 0.0);
+        this.epoch[source] = currentEpoch;
+
+        int hops = 0;
+        double currentShortestPathToTarget = Double.POSITIVE_INFINITY;
+
+        while (!this.pq.isEmpty() && hops < allowedHops) {
+            int v = this.pq.delMin();
+            if(v == target) break; // early stopping
+            
+            if (limitSettledNodes)
+                settledCount++; // only increments if we want to limit settled nodes
+
+            if (settledCount > 100)
+                break; //break? There lies a bug in here, which causes this to not make shortcuts in some cases where they are needed
+
+            // Relax all edges for the current node, excluding edges to the 'excluded' node
+            // and not using edges that are already visited
+            for (Edge e : graph.adj(v)) {
+                int w = e.other(v);
+                if (w != excluded && !e.visited()) {
+                    this.relax(e, v);
+                }
+            }
+            // updates currentshortest path, if distTo target is found and lower thancurrent
+            if (distTo(target) < currentShortestPathToTarget)
+                currentShortestPathToTarget = distTo(target);
+
+            // checks whether we found a path to target lower than sumweight AND makes sure
+            // that the distTo value for the current vertex we are checking are larger
+            // than sumWeight (early stopping)
+            if (currentShortestPathToTarget < sumWeight) {
+                return true;
+            }
+
+            if (currentShortestPathToTarget > sumWeight && distTo(v) > sumWeight) {
+                break;
+            }
+            hops++;
         }
-
-        this.pq = new IndexMinPQ<>(graph.V());
+        return distTo(target) <= sumWeight;
     }
 
     private void relax(Edge e, int v) {
         int w = e.other(v);
-        if (this.epoch[w] != currentEpoch) {
+        if (epoch[w] != currentEpoch) {
             distTo[w] = Double.POSITIVE_INFINITY;
             epoch[w] = currentEpoch;
         }
+        if (epoch[v] != currentEpoch) {
+            distTo[v] = Double.POSITIVE_INFINITY;
+            epoch[v] = currentEpoch;
+        }
         if (this.distTo[w] > this.distTo[v] + e.weight()) {
             this.distTo[w] = this.distTo[v] + e.weight();
-            this.edgeTo[w] = e;
+            // this.edgeTo[w] = edgeTo[w] = e;
             if (this.pq.contains(w)) {
                 this.pq.decreaseKey(w, this.distTo[w]);
             } else {
@@ -85,11 +105,11 @@ public class LocalSearch {
     }
 
     public double distTo(int v) {
+        if (epoch[v] != currentEpoch) {
+            distTo[v] = Double.POSITIVE_INFINITY;
+            epoch[v] = currentEpoch;
+        }
         return this.distTo[v];
-    }
-
-    public int[] getEpoch() {
-        return this.epoch;
     }
 
     public double[] getDistoTo() {
