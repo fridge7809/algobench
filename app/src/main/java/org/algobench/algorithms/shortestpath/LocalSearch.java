@@ -29,7 +29,7 @@ public class LocalSearch {
 
     public boolean hasWitnessPath(EdgeWeightedGraph graph, int source, int target, int excluded, double sumWeight,
             boolean limitSettledNodes, int allowedHops) {
-        emptyQueue(); // clear the queue
+        emptyQueue(); // Should be empty, but clearing the queue to be sure
         int settledCount = 0;
         this.distTo[source] = 0.0;
 
@@ -42,10 +42,13 @@ public class LocalSearch {
 
         while (!this.pq.isEmpty() && hops < allowedHops) {
             int v = this.pq.delMin();
+            if(v == target) break; // early stopping
+            
             if (limitSettledNodes)
                 settledCount++; // only increments if we want to limit settled nodes
+
             if (settledCount > 100)
-                return true;
+                break; //break? There lies a bug in here, which causes this to not make shortcuts in some cases where they are needed
 
             // Relax all edges for the current node, excluding edges to the 'excluded' node
             // and not using edges that are already visited
@@ -55,7 +58,6 @@ public class LocalSearch {
                     this.relax(e, v);
                 }
             }
-
             // updates currentshortest path, if distTo target is found and lower thancurrent
             if (distTo(target) < currentShortestPathToTarget)
                 currentShortestPathToTarget = distTo(target);
@@ -72,7 +74,6 @@ public class LocalSearch {
             }
             hops++;
         }
-        // System.out.println("Relaxed edges: " + countRelaxed);
         return distTo(target) <= sumWeight;
     }
 

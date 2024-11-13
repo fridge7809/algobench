@@ -31,7 +31,7 @@ public class ContractionHierarchyPreprocessor {
 	}
 
 	public static void main(String[] args) {
-		writeAugmentedGraphToFile("app/src/test/resources/denmark.graph", "denmark_processed.graph");
+		writeAugmentedGraphToFile("app/src/test/resources/denmark.graph", "denmark_test_processed.graph");
 	}
 
 	public static void writeAugmentedGraphToFile(String inputGraphPath, String outputGraphPath) {
@@ -182,6 +182,7 @@ public class ContractionHierarchyPreprocessor {
 						countShortcutsCreated++;
 					}
 				}
+				if(shortcutsCreated.size() > 10) break;
 			}
 		}
 

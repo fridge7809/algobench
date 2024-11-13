@@ -139,7 +139,7 @@ public class DijkstraContractionQuery {
 	public static void main(String[] args) {
 
 		try (FileInputStream fis = new FileInputStream(
-				"/Users/mathiasfaberkristiansen/Projects/ITU - new/Applied-algorithms/algobench/denmark_processed.graph")) {
+				"/Users/mathiasfaberkristiansen/Projects/ITU - new/Applied-algorithms/algobench/denmark_test_processed.graph")) {
 			EdgeWeightedGraph graph = ParseGraphAugmented.parseAugmentedGraph(fis);
 
 	
