@@ -232,7 +232,7 @@ public class ContractionHierarchyPreprocessor {
 					int w = k.other(node);
 					double sumWeight = j.weight() + k.weight();
 
-					if (!hasWitnessPath(u, w, sumWeight)) {
+					if (!localSearch.hasWitnessPath(graph, u, w, node, sumWeight, true, 1)) {
 						Edge shortcut = new Edge(u, w, sumWeight, false, true);
 						simulatedShortcuts.add(shortcut);
 					}
